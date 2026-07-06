@@ -1,12 +1,13 @@
 :root {
-  --bg: #0b1620; --card: #121f2b; --card2: #16283a; --text: #e8f1f5; --muted: #7d95a3;
-  --s0: #2a3742; --s2: #8a6d3b; --s4: #b7952e; --s6: #2f9e6e; --s8: #35c4b5;
-  --accent: #35c4b5;
+  --bg: #0d1520; --card: #13202b; --card2: #17293a; --text: #eaf2f3; --muted: #82989f;
+  --s0: #2a3742; --s2: #8a6d3b; --s4: #c09a3e; --s6: #3aa477; --s8: #45c9ab;
+  --accent: #45c9ab; --sunset: #e8a45e;
 }
 * { box-sizing: border-box; margin: 0; }
 body {
-  background: var(--bg); color: var(--text);
-  font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg) radial-gradient(ellipse 90% 40% at 85% -5%, rgba(232, 164, 94, 0.09), transparent 60%) no-repeat fixed;
+  color: var(--text);
+  font: 16px/1.45 ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   padding-bottom: 24px;
 }
 .topbar {
@@ -14,14 +15,18 @@ body {
   padding: 14px 16px 6px; gap: 4px;
 }
 .brand { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
-.brand-accent { color: var(--accent); }
+.brand-accent { color: var(--sunset); }
 .tag { color: var(--muted); font-size: 12px; }
 main { max-width: 640px; margin: 0 auto; padding: 8px 12px; display: flex; flex-direction: column; gap: 10px; }
 .card { background: var(--card); border-radius: 14px; padding: 14px 16px; }
 .loading, .error { color: var(--muted); text-align: center; padding: 40px 16px; }
 
 /* hero */
-.hero { background: linear-gradient(160deg, var(--card2), var(--card)); border: 1px solid #1e3346; }
+.hero {
+  background: linear-gradient(160deg, var(--card2), var(--card) 62%), linear-gradient(200deg, rgba(232, 164, 94, 0.10), transparent 45%);
+  background-blend-mode: normal, screen;
+  border: 1px solid #23374a; border-top-color: rgba(232, 164, 94, 0.25);
+}
 .hero-label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
 .hero-label strong { color: var(--text); font-size: 15px; letter-spacing: 0; text-transform: none; }
 .hero-score { font-size: 56px; font-weight: 800; line-height: 1.1; display: flex; align-items: baseline; gap: 10px; }
@@ -38,7 +43,7 @@ main { max-width: 640px; margin: 0 auto; padding: 8px 12px; display: flex; flex-
 
 /* best window */
 .bestwin { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
-.bw-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); border: 1px solid var(--accent); border-radius: 99px; padding: 2px 8px; }
+.bw-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--sunset); border: 1px solid rgba(232, 164, 94, 0.55); border-radius: 99px; padding: 2px 8px; }
 
 /* zone rows */
 .zone { cursor: pointer; }
