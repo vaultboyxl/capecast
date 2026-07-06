@@ -74,13 +74,16 @@
     const d1s = d1.toISOString().slice(0, 10).replace(/-/g, "");
     const tideURL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=capecast&begin_date=${d0}&end_date=${d1s}&datum=MLLW&station=${TIDE.id}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
 
-    const [marine, wind, tide, buoys] = await Promise.all([
+    // 5-day daily outlook from one mid-Banks point (Rodanthe) — sky trend is regional.
+    const dailyURL = `https://api.open-meteo.com/v1/forecast?latitude=35.58&longitude=-75.43&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&forecast_days=5&temperature_unit=fahrenheit&wind_speed_unit=kn&timezone=America%2FNew_York`;
+    const [marine, wind, tide, buoys, daily] = await Promise.all([
       fetch(marineURL).then(r => r.json()),
       fetch(windURL).then(r => r.json()),
       fetch(tideURL).then(r => r.json()).catch(() => null),
       fetch("./buoys.json").then(r => r.json()).catch(() => null),
+      fetch(dailyURL).then(r => r.json()).catch(() => null),
     ]);
-    return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide, buoys };
+    return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide, buoys, daily };
   }
 
   function buildModel({ marine, wind }) {
@@ -135,8 +138,26 @@
     return `<section class="buoys card"><span class="buoy-tag">Live buoys</span>${rows.join("")}</section>`;
   }
 
+  const WX_ICON = code =>
+    code >= 95 ? "⛈" : code >= 80 ? "🌧" : code >= 61 ? "🌧" : code >= 51 ? "🌦" :
+    code >= 45 ? "🌫" : code === 3 ? "☁️" : code === 2 ? "⛅" : "☀️";
+
+  function dailyHTML(daily) {
+    if (!daily || !daily.daily) return "";
+    const d = daily.daily;
+    const cols = d.time.map((t, i) => `
+      <div class="day${d.weather_code[i] >= 95 ? " day-storm" : ""}">
+        <div class="day-name">${i === 0 ? "Today" : fmtDay(t + "T12:00")}</div>
+        <div class="day-icon">${WX_ICON(d.weather_code[i])}</div>
+        <div class="day-temp">${Math.round(d.temperature_2m_max[i])}°</div>
+        <div class="day-meta">${d.precipitation_probability_max[i]}%💧</div>
+        <div class="day-meta">${Math.round(d.wind_speed_10m_max[i])}kt ${compass(d.wind_direction_10m_dominant[i])}</div>
+      </div>`).join("");
+    return `<section class="daily card"><div class="tide-title">Sky — next 5 days <span class="muted">(mid-Banks)</span></div><div class="daily-row">${cols}</div></section>`;
+  }
+
   // ---------- render ----------
-  function render(model, tide, buoys) {
+  function render(model, tide, buoys, daily) {
     const app = $("#app");
     const ranked = [...model.zones].sort((a, b) => b.now.score - a.now.score);
     const top = ranked[0], bw = bestWindow(model);
@@ -214,7 +235,7 @@
 
     app.innerHTML = heroHTML + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
       <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing <i class="cell s0 stormy"></i>⛈</span></div>` +
-      rows + tideHTML + `
+      rows + dailyHTML(daily) + tideHTML + `
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
 
     app.querySelectorAll(".zone").forEach(el => el.addEventListener("click", () => el.classList.toggle("open")));
@@ -224,7 +245,7 @@
   async function main() {
     try {
       const data = await fetchAll();
-      render(buildModel(data), data.tide, data.buoys);
+      render(buildModel(data), data.tide, data.buoys, data.daily);
     } catch (e) {
       $("#app").innerHTML = `<section class="card error">Couldn't reach the forecast feeds (${e.message}). If you're offline, reconnect and pull to refresh.</section>`;
     }

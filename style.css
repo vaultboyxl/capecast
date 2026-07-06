@@ -154,6 +154,15 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .zone.open .zone-detail { max-height: 160px; margin-top: 11px; padding-top: 11px; border-top-width: 1px; }
 .detail-access { color: var(--muted); font-size: 13px; margin-top: 5px; }
 
+/* ---------- 5-day sky ---------- */
+.daily-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; }
+.day { border-radius: 12px; padding: 8px 2px; background: rgba(255, 255, 255, 0.02); }
+.day-storm { background: rgba(224, 120, 86, 0.10); box-shadow: inset 0 0 0 1px rgba(224, 120, 86, 0.28); }
+.day-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+.day-icon { font-size: 22px; margin: 5px 0 3px; }
+.day-temp { font-family: var(--display); font-weight: 800; font-size: 16px; }
+.day-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
 /* ---------- legend + tide + footer ---------- */
 .strip-legend { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--muted); font-size: 11px; padding: 2px 6px 0; }
 .legend { display: flex; align-items: center; gap: 5px; }
