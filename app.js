@@ -136,7 +136,7 @@
     const heroHTML = `
       <section class="hero card ${scoreClass(top.now.score)}">
         <div class="hero-label">Surf now → <strong>${top.name}</strong></div>
-        <div class="hero-score">${top.now.score.toFixed(1)}<span class="hero-word">${scoreWord(top.now.score)}</span></div>
+        <div class="hero-score"><span class="num">${top.now.score.toFixed(1)}</span><span class="hero-word">${scoreWord(top.now.score)}</span></div>
         <div class="hero-reason">${reason(top, top.now.sw, top.now.windWord)}</div>
         <div class="hero-access">📍 ${top.access}</div>
         <div class="runners">${ranked.slice(1, 3).map(z =>
