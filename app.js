@@ -69,12 +69,13 @@
     const d1s = d1.toISOString().slice(0, 10).replace(/-/g, "");
     const tideURL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=capecast&begin_date=${d0}&end_date=${d1s}&datum=MLLW&station=${TIDE.id}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
 
-    const [marine, wind, tide] = await Promise.all([
+    const [marine, wind, tide, buoys] = await Promise.all([
       fetch(marineURL).then(r => r.json()),
       fetch(windURL).then(r => r.json()),
       fetch(tideURL).then(r => r.json()).catch(() => null),
+      fetch("./buoys.json").then(r => r.json()).catch(() => null),
     ]);
-    return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide };
+    return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide, buoys };
   }
 
   function buildModel({ marine, wind }) {
@@ -110,8 +111,24 @@
     return best;
   }
 
+  // Live NDBC obs card. Hidden if the feed is missing or older than 4h — a wrong
+  // "live" number is worse than none.
+  function buoyHTML(buoys) {
+    if (!buoys || !buoys.stations) return "";
+    const ageH = (Date.now() - new Date(buoys.updated)) / 36e5;
+    if (isNaN(ageH) || ageH > 4) return "";
+    const rows = Object.values(buoys.stations).filter(Boolean).map(s => {
+      const wave = s.wvht_ft != null ? `<b>${s.wvht_ft}ft</b> @ ${s.dpd_s}s ${s.mwd_deg != null ? compass(s.mwd_deg) : ""}` : "wave sensor down";
+      const wind = s.wspd_kt != null ? ` · ${s.wspd_kt}kt ${compass(s.wdir_deg)}` : "";
+      const temp = s.wtmp_f != null ? ` · ${s.wtmp_f}°` : "";
+      return `<span class="buoy-item">${s.name}: ${wave}${wind}${temp}</span>`;
+    });
+    if (!rows.length) return "";
+    return `<section class="buoys card"><span class="buoy-tag">Live buoys</span>${rows.join("")}</section>`;
+  }
+
   // ---------- render ----------
-  function render(model, tide) {
+  function render(model, tide, buoys) {
     const app = $("#app");
     const ranked = [...model.zones].sort((a, b) => b.now.score - a.now.score);
     const top = ranked[0], bw = bestWindow(model);
@@ -168,7 +185,7 @@
         }).join("")}</div>
       </section>` : "";
 
-    app.innerHTML = heroHTML + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
+    app.innerHTML = heroHTML + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
       <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing</span></div>` +
       rows + tideHTML + `
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
@@ -180,7 +197,7 @@
   async function main() {
     try {
       const data = await fetchAll();
-      render(buildModel(data), data.tide);
+      render(buildModel(data), data.tide, data.buoys);
     } catch (e) {
       $("#app").innerHTML = `<section class="card error">Couldn't reach the forecast feeds (${e.message}). If you're offline, reconnect and pull to refresh.</section>`;
     }

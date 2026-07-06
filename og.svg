@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0d1520"/>
+  <ellipse cx="1050" cy="40" rx="600" ry="280" fill="#e8a45e" opacity="0.10"/>
+  <g transform="translate(760, 150) scale(5.6)">
+    <circle cx="46" cy="38" r="12" fill="#e8a45e" opacity="0.9"/>
+    <path d="M8 42C20 22 32 14 58 10c-16 8-20 16-22 24-8-4-18-2-28 8z" fill="#45c9ab"/>
+    <path d="M8 50h48" stroke="#45c9ab" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <text x="90" y="270" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="110" font-weight="800" fill="#eaf2f3" letter-spacing="-2">Cape<tspan fill="#e8a45e">Cast</tspan></text>
+  <text x="94" y="345" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="38" fill="#82989f">Where to paddle out on the</text>
+  <text x="94" y="397" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="38" fill="#82989f">Outer Banks, right now.</text>
+  <text x="94" y="449" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="38" fill="#82989f">Corolla → Ocracoke.</text>
+  <text x="94" y="545" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="30" fill="#45c9ab">Free · no accounts · knows the bend in the cape</text>
+</svg>

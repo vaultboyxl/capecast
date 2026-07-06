@@ -1,0 +1,32 @@
+name: buoys
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 min; NDBC updates ~hourly-ish
+    - cron: "0 15 * * *"     # daily calibration snapshot (11am ET summer)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: buoys
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch buoys (plus daily snapshot at 15:00 UTC)
+        run: |
+          if [ "$(date -u +%H)" = "15" ] && [ "$(date -u +%M)" -lt "20" ]; then
+            node scripts/fetch_buoys.mjs --snapshot
+          else
+            node scripts/fetch_buoys.mjs
+          fi
+      - name: Commit if changed
+        run: |
+          git config user.name "capecast-buoy-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add buoys.json data/ 2>/dev/null || git add buoys.json
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "buoys: $(date -u +%H:%MZ)"
+          git pull --rebase origin main
+          git push
