@@ -170,6 +170,7 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .spot-extra { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line); font-size: 13px; }
 .spot-fact { display: inline-flex; align-items: center; gap: 5px; color: var(--text); }
 .spot-fact .chip { min-width: 0; }
+.heat-hot { color: #e08a72; font-weight: 700; }
 .zone.pinned .zone-detail { max-height: none; margin-top: 9px; padding-top: 0; border-top: 0; }
 
 /* ---------- 5-day sky ---------- */

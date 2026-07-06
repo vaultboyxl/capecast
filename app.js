@@ -85,7 +85,7 @@
   async function fetchAll() {
     const lats = ZONES.map(z => z.lat).join(","), lons = ZONES.map(z => z.lon).join(",");
     const marineURL = `https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=3&timezone=America%2FNew_York`;
-    const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,weather_code,precipitation_probability,temperature_2m&forecast_days=3&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
+    const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,weather_code,precipitation_probability,temperature_2m,apparent_temperature&forecast_days=3&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
     const d0 = nowET().slice(0, 10).replace(/-/g, "");
     const d1 = new Date(Date.now() + 2 * 864e5); // end date 2 days out (UTC date is fine for a range bound)
     const d1s = d1.toISOString().slice(0, 10).replace(/-/g, "");
@@ -116,6 +116,7 @@
           wxCode: w.weather_code ? w.weather_code[i] : null,
           pprob: w.precipitation_probability ? w.precipitation_probability[i] : null,
           airT: w.temperature_2m ? w.temperature_2m[i] : null,
+          feels: w.apparent_temperature ? w.apparent_temperature[i] : null,
         };
         const { score, windWord, wx } = scoreHour(z, sw);
         return { t, score, sw, windWord, wx };
@@ -239,7 +240,7 @@
       const spotExtra = isPinned ? `
         <div class="spot-extra">
           ${tides.length ? `<span class="spot-fact">🌊 tide ${tides.join(" · ")}</span>` : ""}
-          ${z.now.sw.airT != null ? `<span class="spot-fact">${WX_ICON(z.now.sw.wxCode ?? 0)} ${Math.round(z.now.sw.airT)}° · ${z.now.sw.pprob ?? 0}%💧</span>` : ""}
+          ${z.now.sw.airT != null ? `<span class="spot-fact">${WX_ICON(z.now.sw.wxCode ?? 0)} ${Math.round(z.now.sw.airT)}°${z.now.sw.feels != null ? ` · feels <b class="${z.now.sw.feels >= 99 ? "heat-hot" : ""}">${Math.round(z.now.sw.feels)}°</b>` : ""} · ${z.now.sw.pprob ?? 0}%💧</span>` : ""}
           ${bw ? `<span class="spot-fact">⭐ best 48h: ${fmtDay(z.hours[bw.i].t)} ${fmtHour(z.hours[bw.i].t)}–${fmtHour(z.hours[bw.i + 2].t)} <b class="chip ${scoreClass(bw.avg)}" style="font-size:12px;padding:1px 6px">${bw.avg.toFixed(1)}</b></span>` : ""}
         </div>` : "";
       return `
@@ -257,7 +258,7 @@
         ${spotExtra}
         <div class="zone-detail">
           <div>${reason(z, z.now.sw, z.now.windWord)}</div>
-          <div class="detail-access">${z.now.sw.airT != null ? Math.round(z.now.sw.airT) + "°F air" : ""}${z.now.sw.pprob != null ? " · " + z.now.sw.pprob + "% rain chance" : ""}${z.now.wx === "storm" ? " · ⛈ lightning risk NOW" : ""}</div>
+          <div class="detail-access">${z.now.sw.airT != null ? Math.round(z.now.sw.airT) + "°F air" : ""}${z.now.sw.feels != null ? ` · feels <b class="${z.now.sw.feels >= 99 ? "heat-hot" : ""}">${Math.round(z.now.sw.feels)}°</b>` : ""}${z.now.sw.pprob != null ? " · " + z.now.sw.pprob + "% rain chance" : ""}${z.now.wx === "storm" ? " · ⛈ lightning risk NOW" : ""}</div>
           <div class="detail-access">📍 ${z.access} · beach faces ${compass(z.facing)}</div>
         </div>
       </div>`;
