@@ -162,12 +162,16 @@
       return cells;
     };
 
+    const windClass = w => w === "offshore" ? "w-off" : w === "onshore" ? "w-on" : w === "cross-shore" ? "w-cross" : "w-light";
     const rows = ranked.map(z => `
       <div class="zone card" data-id="${z.id}">
         <div class="zone-head">
           <span class="chip ${scoreClass(z.now.score)}">${z.now.score.toFixed(1)}</span>
           <span class="zone-name">${z.name}</span>
-          <span class="zone-wind">${Math.round(z.now.sw.windS)}kt ${compass(z.now.sw.windD)}</span>
+          <span class="zone-wind ${windClass(z.now.windWord)}" title="${z.now.windWord} at this beach">
+            <span class="wind-arrow" style="transform:rotate(${Math.round(z.now.sw.windD) + 180}deg)">↑</span>
+            ${Math.round(z.now.sw.windS)}kt ${compass(z.now.sw.windD)}
+          </span>
         </div>
         <div class="strip">${strip(z)}</div>
         <div class="zone-detail">
