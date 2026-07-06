@@ -84,15 +84,15 @@
   // ---------- data ----------
   async function fetchAll() {
     const lats = ZONES.map(z => z.lat).join(","), lons = ZONES.map(z => z.lon).join(",");
-    const marineURL = `https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=3&timezone=America%2FNew_York`;
-    const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,weather_code,precipitation_probability,temperature_2m,apparent_temperature&forecast_days=3&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
+    const marineURL = `https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=8&timezone=America%2FNew_York`;
+    const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,weather_code,precipitation_probability,temperature_2m,apparent_temperature&forecast_days=8&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
     const d0 = nowET().slice(0, 10).replace(/-/g, "");
     const d1 = new Date(Date.now() + 2 * 864e5); // end date 2 days out (UTC date is fine for a range bound)
     const d1s = d1.toISOString().slice(0, 10).replace(/-/g, "");
     const tideURL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=capecast&begin_date=${d0}&end_date=${d1s}&datum=MLLW&station=${TIDE.id}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
 
     // 5-day daily outlook from one mid-Banks point (Rodanthe) — sky trend is regional.
-    const dailyURL = `https://api.open-meteo.com/v1/forecast?latitude=35.58&longitude=-75.43&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset&hourly=cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation&forecast_days=5&temperature_unit=fahrenheit&wind_speed_unit=kn&timezone=America%2FNew_York`;
+    const dailyURL = `https://api.open-meteo.com/v1/forecast?latitude=35.58&longitude=-75.43&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset&hourly=cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation&forecast_days=8&temperature_unit=fahrenheit&wind_speed_unit=kn&timezone=America%2FNew_York`;
     const [marine, wind, tide, buoys, daily] = await Promise.all([
       fetch(marineURL).then(r => r.json()),
       fetch(windURL).then(r => r.json()),
@@ -213,7 +213,7 @@
   function dailyHTML(daily) {
     if (!daily || !daily.daily) return "";
     const d = daily.daily;
-    const cols = d.time.map((t, i) => `
+    const cols = d.time.slice(0, 5).map((t, i) => `
       <div class="day${d.weather_code[i] >= 95 ? " day-storm" : ""}">
         <div class="day-name">${i === 0 ? "Today" : fmtDay(t + "T12:00")}</div>
         <div class="day-icon">${WX_ICON(d.weather_code[i])}</div>
@@ -224,7 +224,41 @@
     return `<section class="daily card"><div class="tide-title">Sky — next 5 days <span class="muted">(mid-Banks)</span></div><div class="daily-row">${cols}</div></section>`;
   }
 
+  // 8-day outlook: per day, the Banks' best surf (zone + peak hour), weather, wind, sunset wow.
+  function outlookHTML(model, daily) {
+    if (!daily || !daily.daily) return "";
+    const d = daily.daily;
+    const rows = d.time.slice(0, 8).map((day, di) => {
+      let best = null;
+      for (const z of model.zones) {
+        for (const h of z.hours) {
+          if (!h.t.startsWith(day)) continue;
+          const hr = hourOf(h.t);
+          if (hr < 6 || hr > 19) continue;
+          if (!best || h.score > best.score) best = { score: h.score, zone: z, t: h.t };
+        }
+      }
+      const wow = d.sunset[di] ? wowScore(daily.hourly, d.sunset[di]) : null;
+      return `<div class="o-row${d.weather_code[di] >= 95 ? " day-storm" : ""}">
+        <span class="o-day">${di === 0 ? "Today" : fmtDay(day + "T12:00")}<i>${day.slice(5).replace("-", "/")}</i></span>
+        <div class="o-main">
+          <div class="o-surf">${best ? `<b class="chip ${scoreClass(best.score)}">${best.score.toFixed(1)}</b> <span class="o-zone">${best.zone.name.split(" · ")[0].split(" / ")[0]} <i>~${fmtHour(best.t)}</i></span>` : "wave model ends"}</div>
+          <div class="o-sub">
+            <span>${WX_ICON(d.weather_code[di])} ${Math.round(d.temperature_2m_max[di])}°</span>
+            <span>${d.precipitation_probability_max[di]}%💧</span>
+            <span>💨 ${Math.round(d.wind_speed_10m_max[di])}kt ${compass(d.wind_direction_10m_dominant[di])}</span>
+            ${wow != null ? `<span class="wow ${wowClass(wow)}" title="sunset color forecast">🌇 ${wow.toFixed(1)}</span>` : ""}
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+    return `<section class="card outlook">${rows}
+      <div class="o-note">Surf = best zone on the Banks each day, with the peak hour. 🌇 = sunset color forecast. Wave model runs 8 days; trust days 6–8 loosely.</div>
+    </section>`;
+  }
+
   // ---------- render ----------
+  let activeTab = "now";
   function render(model, tide, buoys, daily) {
     const app = $("#app");
     const ranked = [...model.zones].sort((a, b) => b.now.score - a.now.score);
@@ -262,15 +296,20 @@
       </section>` : "";
 
     const strip = z => {
-      let cells = "", lastDay = "";
+      let cells = "", lastDay = "", counts = [];
       for (let i = model.iNow; i < Math.min(z.hours.length, model.iNow + 48); i++) {
         const h = z.hours[i], hr = hourOf(h.t), day = h.t.slice(0, 10);
         if (hr < 5 || hr > 20) continue;
-        if (day !== lastDay && lastDay) cells += `<span class="daybreak" title="${fmtDay(h.t)}"></span>`;
+        if (day !== lastDay) {
+          if (lastDay) cells += `<span class="daybreak" title="${fmtDay(h.t)}"></span>`;
+          counts.push({ day: fmtDay(h.t), n: 0 });
+        }
         lastDay = day;
+        counts[counts.length - 1].n++;
         cells += `<span class="cell ${scoreClass(h.score)}${h.wx === "storm" ? " stormy" : ""}" title="${fmtDay(h.t)} ${fmtHour(h.t)} — ${h.score.toFixed(1)}${h.wx === "storm" ? " ⛈" : ""}"></span>`;
       }
-      return cells;
+      const axis = counts.map(c => `<span style="flex:${c.n}">${c.n >= 4 ? c.day : ""}</span>`).join("");
+      return `<div class="strip">${cells}</div><div class="strip-axis">${axis}</div>`;
     };
 
     const windClass = w => w === "offshore" ? "w-off" : w === "onshore" ? "w-on" : w === "cross-shore" ? "w-cross" : "w-light";
@@ -279,7 +318,10 @@
 
     const zoneCard = z => {
       const isPinned = pins.includes(z.id);
-      const bw = isPinned ? bestWindowZone(z, model.iNow) : null;
+      const bw = bestWindowZone(z, model.iNow);
+      const bwLine = !isPinned && bw ? (bw.avg >= 2
+        ? `<div class="zone-best">⭐ best: ${fmtDay(z.hours[bw.i].t)} ${fmtHour(z.hours[bw.i].t)}–${fmtHour(z.hours[bw.i + 2].t)} · ${bw.avg.toFixed(1)}</div>`
+        : `<div class="zone-best muted-best">quiet next 48h</div>`) : "";
       const tides = isPinned ? nextTides(tide, 2) : [];
       const spotExtra = isPinned ? `
         <div class="spot-extra">
@@ -298,7 +340,8 @@
           </span>
           <button class="pin" data-pin="${z.id}" aria-label="${isPinned ? "unpin" : "pin"} ${z.name}" title="${isPinned ? "unpin" : "pin to top"}">${isPinned ? "★" : "☆"}</button>
         </div>
-        <div class="strip">${strip(z)}</div>
+        ${strip(z)}
+        ${bwLine}
         ${spotExtra}
         <div class="zone-detail">
           <div>${reason(z, z.now.sw, z.now.windWord)}</div>
@@ -318,10 +361,26 @@
         }).join("")}</div>
       </section>` : "";
 
-    app.innerHTML = heroHTML + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
+    const tabsHTML = `<nav class="tabs">
+      <button class="tab${activeTab === "now" ? " active" : ""}" data-tab="now">Next 48h</button>
+      <button class="tab${activeTab === "out" ? " active" : ""}" data-tab="out">8-Day</button>
+    </nav>`;
+
+    const nowView = buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
       <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing <i class="cell s0 stormy"></i>⛈</span></div>` +
-      rows + goldenHTML(daily) + dailyHTML(daily) + tideHTML + `
+      rows + goldenHTML(daily) + dailyHTML(daily) + tideHTML;
+
+    app.innerHTML = heroHTML + tabsHTML +
+      `<div class="view" id="view-now"${activeTab === "now" ? "" : " hidden"}>${nowView}</div>` +
+      `<div class="view" id="view-out"${activeTab === "out" ? "" : " hidden"}>${outlookHTML(model, daily)}</div>` + `
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
+
+    app.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+      activeTab = b.dataset.tab;
+      app.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === b));
+      $("#view-now").hidden = activeTab !== "now";
+      $("#view-out").hidden = activeTab !== "out";
+    }));
 
     app.querySelectorAll(".zone").forEach(el => el.addEventListener("click", () => el.classList.toggle("open")));
     app.querySelectorAll(".pin").forEach(b => b.addEventListener("click", e => {

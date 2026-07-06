@@ -1,6 +1,6 @@
 // CapeCast service worker: cache-first shell, network-first data with offline fallback
 // (so the last forecast still shows in the lineup with no signal).
-const SHELL = "capecast-shell-v10";
+const SHELL = "capecast-shell-v11";
 const DATA = "capecast-data-v1";
 const SHELL_FILES = ["./", "./index.html", "./style.css", "./app.js", "./zones.js", "./icon.svg", "./icon-192.png", "./manifest.webmanifest"];
 
