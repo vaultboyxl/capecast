@@ -87,7 +87,7 @@
     const marineURL = `https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=8&timezone=America%2FNew_York`;
     const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,weather_code,precipitation_probability,temperature_2m,apparent_temperature&forecast_days=8&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
     const d0 = nowET().slice(0, 10).replace(/-/g, "");
-    const d1 = new Date(Date.now() + 2 * 864e5); // end date 2 days out (UTC date is fine for a range bound)
+    const d1 = new Date(Date.now() + 7 * 864e5); // end date 7 days out (UTC date is fine for a range bound)
     const d1s = d1.toISOString().slice(0, 10).replace(/-/g, "");
     const tideURL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=capecast&begin_date=${d0}&end_date=${d1s}&datum=MLLW&station=${TIDE.id}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
 
@@ -228,10 +228,16 @@
   }
 
   // 8-day outlook: per day, the Banks' best surf (zone + peak hour), weather, wind, sunset wow.
-  function outlookHTML(model, daily) {
+  function outlookHTML(model, daily, tide) {
     if (!daily || !daily.daily) return "";
     const d = daily.daily;
     const pins = getPins();
+    const windSpan = h => `<span class="${windClass(h.windWord)}-t">${Math.round(h.sw.windS)}kt ${compass(h.sw.windD)}</span>`;
+    const swellStr = sw => {
+      const hFt = Math.max(sw.swellH || 0, sw.waveH || 0) * M2FT;
+      const T = Math.round((sw.swellH >= sw.waveH ? sw.swellT : sw.waveT) || 0);
+      return `${hFt.toFixed(1)}ft @ ${T}s`;
+    };
     const zoneDayBest = (z, day) => {
       let best = null;
       for (const h of z.hours) {
@@ -249,10 +255,26 @@
         if (b && (!best || b.score > best.score)) best = b;
       }
       const wow = d.sunset[di] ? wowScore(daily.hourly, d.sunset[di]) : null;
-      return `<div class="o-row${d.weather_code[di] >= 95 ? " day-storm" : ""}">
+
+      // expanded detail: top 3 zones, pinned spots, golden hours, tides
+      const ranked3 = model.zones.map(z => zoneDayBest(z, day)).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 3);
+      const top3HTML = ranked3.map(b => `<div class="od-line"><b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b> ${b.zone.name.split(" · ")[0]} <i>~${fmtHour(b.t)}</i> · ${swellStr(b.h.sw)} · ${windSpan(b.h)}</div>`).join("");
+      const pinsHTML = pins.map(id => {
+        const z = model.zones.find(x => x.id === id);
+        const b = z && zoneDayBest(z, day);
+        return b ? `<div class="od-line od-pin">★ ${z.name.split(" · ")[0]} <b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b> <i>~${fmtHour(b.t)}</i> · ${swellStr(b.h.sw)} · ${windSpan(b.h)}</div>` : "";
+      }).join("");
+      const riseWow = d.sunrise[di] ? wowScore(daily.hourly, d.sunrise[di]) : null;
+      const sunHTML = `<div class="od-line">🌅 ${fmtClock(d.sunrise[di].slice(11))}${riseWow != null ? ` <span class="wow ${wowClass(riseWow)}">${riseWow.toFixed(1)} ${wowShort(riseWow)}</span>` : ""}
+        &nbsp; 🌇 ${fmtClock(d.sunset[di].slice(11))}${wow != null ? ` <span class="wow ${wowClass(wow)}">${wow.toFixed(1)} ${wowShort(wow)}</span>` : ""}</div>`;
+      const dayTides = tide && tide.predictions ? tide.predictions.filter(p => p.t.startsWith(day)) : [];
+      const tideHTML2 = dayTides.length ? `<div class="od-line od-tide">🌊 ${dayTides.map(p => `${p.type === "H" ? "▲" : "▼"} ${fmtClock(p.t.slice(11))} <i>${(+p.v).toFixed(1)}ft</i>`).join(" · ")} <i class="od-note">Duck Pier; south of cape +~40min</i></div>` : "";
+
+      return `<div class="o-day-block${d.weather_code[di] >= 95 ? " day-storm" : ""}">
+      <div class="o-row">
         <span class="o-day">${di === 0 ? "Today" : fmtDay(day + "T12:00")}<i>${day.slice(5).replace("-", "/")}</i></span>
         <div class="o-main">
-          <div class="o-surf">${best ? `<b class="chip ${scoreClass(best.score)}">${best.score.toFixed(1)}</b> <span class="o-zone">${best.zone.name.split(" · ")[0].split(" / ")[0]} <i>~${fmtHour(best.t)}</i></span>` : "wave model ends"}</div>
+          <div class="o-surf">${best ? `<b class="chip ${scoreClass(best.score)}">${best.score.toFixed(1)}</b> <span class="o-zone">${best.zone.name.split(" · ")[0].split(" / ")[0]} <i>~${fmtHour(best.t)}</i></span>` : "wave model ends"}<span class="o-caret">▾</span></div>
           <div class="o-sub">
             <span>${WX_ICON(d.weather_code[di])} ${Math.round(d.temperature_2m_max[di])}°</span>
             <span>${d.precipitation_probability_max[di]}%💧</span>
@@ -260,6 +282,8 @@
             ${wow != null ? `<span class="wow ${wowClass(wow)}" title="sunset color forecast, 0–10">🌇 ${wow.toFixed(1)} ${wowShort(wow)}</span>` : ""}
           </div>
         </div>
+      </div>
+      <div class="o-detail">${pinsHTML}${top3HTML}${sunHTML}${tideHTML2}</div>
       </div>`;
     }).join("");
     // One tile per pinned spot: that zone's 8 days at a glance.
@@ -285,7 +309,7 @@
     }).join("");
 
     return pinTiles + `<section class="card outlook">${rows}
-      <div class="o-note">Surf = best zone on the Banks each day, with the peak hour. 🌇 = sunset color forecast 0–10 (dud → mild → color → glow → epic). Wave model runs 8 days; trust days 6–8 loosely.</div>
+      <div class="o-note">Tap a day for detail — top 3 zones, your spots, golden hours, tides. 🌇 = sunset color 0–10 (dud → mild → color → glow → epic). Wave model runs 8 days; trust days 6–8 loosely.</div>
     </section>`;
   }
 
@@ -403,7 +427,7 @@
 
     app.innerHTML = heroHTML + tabsHTML +
       `<div class="view" id="view-now"${activeTab === "now" ? "" : " hidden"}>${nowView}</div>` +
-      `<div class="view" id="view-out"${activeTab === "out" ? "" : " hidden"}>${outlookHTML(model, daily)}</div>` + `
+      `<div class="view" id="view-out"${activeTab === "out" ? "" : " hidden"}>${outlookHTML(model, daily, tide)}</div>` + `
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
 
     app.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
@@ -414,6 +438,7 @@
     }));
 
     app.querySelectorAll(".zone").forEach(el => el.addEventListener("click", () => el.classList.toggle("open")));
+    app.querySelectorAll(".o-day-block").forEach(el => el.addEventListener("click", () => el.classList.toggle("open")));
     app.querySelectorAll(".pin").forEach(b => b.addEventListener("click", e => {
       e.stopPropagation();
       togglePin(b.dataset.pin);
