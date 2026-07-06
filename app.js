@@ -182,6 +182,7 @@
   }
   const wowWord = s => s >= 8 ? "all-timer potential" : s >= 6.5 ? "glowing" : s >= 4.5 ? "some color" : s >= 2.5 ? "mild" : "dud";
   const wowShort = s => s >= 8 ? "epic" : s >= 6.5 ? "glow" : s >= 4.5 ? "color" : s >= 2.5 ? "mild" : "dud";
+  const windClass = w => w === "offshore" ? "w-off" : w === "onshore" ? "w-on" : w === "cross-shore" ? "w-cross" : "w-light";
   const wowClass = s => s >= 8 ? "wow-max" : s >= 6.5 ? "wow-hi" : s >= 4.5 ? "wow-mid" : "wow-low";
 
   function goldenHTML(daily) {
@@ -237,7 +238,7 @@
         if (!h.t.startsWith(day)) continue;
         const hr = hourOf(h.t);
         if (hr < 6 || hr > 19) continue;
-        if (!best || h.score > best.score) best = { score: h.score, zone: z, t: h.t };
+        if (!best || h.score > best.score) best = { score: h.score, zone: z, t: h.t, h };
       }
       return best;
     };
@@ -267,9 +268,17 @@
       if (!z) return "";
       const cols = d.time.slice(0, 8).map((day, di) => {
         const b = zoneDayBest(z, day);
+        if (!b) return `<div class="day"><div class="day-name">${fmtDay(day + "T12:00")}</div><div class="day-meta">—</div></div>`;
+        const sw = b.h.sw;
+        const hFt = Math.max(sw.swellH || 0, sw.waveH || 0) * M2FT;
+        const T = Math.round((sw.swellH >= sw.waveH ? sw.swellT : sw.waveT) || 0);
         return `<div class="day">
           <div class="day-name">${di === 0 ? "Now" : fmtDay(day + "T12:00")}</div>
-          ${b ? `<b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b><div class="day-meta">~${fmtHour(b.t)}</div>` : `<div class="day-meta">—</div>`}
+          <div class="p8-icon">${WX_ICON(sw.wxCode ?? 0)}</div>
+          <b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b>
+          <div class="day-meta">~${fmtHour(b.t)}</div>
+          <div class="p8-wind ${windClass(b.h.windWord)}-t">${Math.round(sw.windS)}kt ${compass(sw.windD)}</div>
+          <div class="day-meta">${hFt.toFixed(1)}ft @ ${T}s</div>
         </div>`;
       }).join("");
       return `<section class="card zone pinned pin8"><div class="tide-title">★ ${z.name} <span class="muted">(your spot, 8-day)</span></div><div class="daily-row p8-row">${cols}</div></section>`;
@@ -335,7 +344,6 @@
       return `<div class="strip">${cells}</div><div class="strip-axis">${axis}</div>`;
     };
 
-    const windClass = w => w === "offshore" ? "w-off" : w === "onshore" ? "w-on" : w === "cross-shore" ? "w-cross" : "w-light";
     const pins = getPins();
     const ordered = [...ranked.filter(z => pins.includes(z.id)), ...ranked.filter(z => !pins.includes(z.id))];
 
