@@ -47,7 +47,12 @@
     else if (on <= 0.3)   { windF = Math.max(0.35, 1 - w / 35); windWord = "cross-shore"; }
     else                  { windF = Math.max(0.08, 1 - (w * on) / 18); windWord = "onshore"; }
 
-    return { score: clamp(size * windF, 0, 10), windWord };
+    // Weather gate: lightning ends sessions regardless of swell quality.
+    let wx = null;
+    if ([95, 96, 99].includes(sw.wxCode)) { windF *= 0.12; wx = "storm"; }
+    else if ([65, 67, 82].includes(sw.wxCode)) { windF *= 0.8; wx = "rain"; }
+
+    return { score: clamp(size * windF, 0, 10), windWord, wx };
   }
 
   const scoreClass = s => s >= 8 ? "s8" : s >= 6 ? "s6" : s >= 4 ? "s4" : s >= 2 ? "s2" : "s0";
@@ -63,7 +68,7 @@
   async function fetchAll() {
     const lats = ZONES.map(z => z.lat).join(","), lons = ZONES.map(z => z.lon).join(",");
     const marineURL = `https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=3&timezone=America%2FNew_York`;
-    const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m&forecast_days=3&wind_speed_unit=kn&timezone=America%2FNew_York`;
+    const windURL = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,weather_code,precipitation_probability,temperature_2m&forecast_days=3&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
     const d0 = nowET().slice(0, 10).replace(/-/g, "");
     const d1 = new Date(Date.now() + 2 * 864e5); // end date 2 days out (UTC date is fine for a range bound)
     const d1s = d1.toISOString().slice(0, 10).replace(/-/g, "");
@@ -88,9 +93,12 @@
           waveH: m.wave_height[i], waveT: m.wave_period[i], waveD: m.wave_direction[i],
           swellH: m.swell_wave_height[i], swellT: m.swell_wave_period[i], swellD: m.swell_wave_direction[i],
           windS: w.wind_speed_10m[i], windD: w.wind_direction_10m[i],
+          wxCode: w.weather_code ? w.weather_code[i] : null,
+          pprob: w.precipitation_probability ? w.precipitation_probability[i] : null,
+          airT: w.temperature_2m ? w.temperature_2m[i] : null,
         };
-        const { score, windWord } = scoreHour(z, sw);
-        return { t, score, sw, windWord };
+        const { score, windWord, wx } = scoreHour(z, sw);
+        return { t, score, sw, windWord, wx };
       });
       return { ...z, hours, now: hours[iNow] };
     });
@@ -133,11 +141,25 @@
     const ranked = [...model.zones].sort((a, b) => b.now.score - a.now.score);
     const top = ranked[0], bw = bestWindow(model);
 
+    // Contiguous lightning-risk window in the next 24 daylight hours at the top zone.
+    const stormWindow = (z) => {
+      let start = null, end = null;
+      for (let i = model.iNow; i < Math.min(z.hours.length, model.iNow + 24); i++) {
+        const h = z.hours[i], hr = hourOf(h.t);
+        if (hr < 6 || hr > 20) continue;
+        if (h.wx === "storm") { if (start === null) start = i; end = i; }
+      }
+      if (start === null) return "";
+      const day = z.hours[start].t.slice(0, 10) === z.hours[model.iNow].t.slice(0, 10) ? "" : fmtDay(z.hours[start].t) + " ";
+      return `<div class="wx-warn">⛈ Lightning risk ${day}${fmtHour(z.hours[start].t)}–${fmtHour(z.hours[Math.min(end + 1, z.hours.length - 1)].t)} — clear the water</div>`;
+    };
+
     const heroHTML = `
       <section class="hero card ${scoreClass(top.now.score)}">
         <div class="hero-label">Surf now → <strong>${top.name}</strong></div>
         <div class="hero-score"><span class="num">${top.now.score.toFixed(1)}</span><span class="hero-word">${scoreWord(top.now.score)}</span></div>
         <div class="hero-reason">${reason(top, top.now.sw, top.now.windWord)}</div>
+        ${stormWindow(top)}
         <div class="hero-access">📍 ${top.access}</div>
         <div class="runners">${ranked.slice(1, 3).map(z =>
           `<span class="runner"><b>${z.now.score.toFixed(1)}</b> ${z.name}</span>`).join("")}</div>
@@ -157,7 +179,7 @@
         if (hr < 5 || hr > 20) continue;
         if (day !== lastDay && lastDay) cells += `<span class="daybreak" title="${fmtDay(h.t)}"></span>`;
         lastDay = day;
-        cells += `<span class="cell ${scoreClass(h.score)}" title="${fmtDay(h.t)} ${fmtHour(h.t)} — ${h.score.toFixed(1)}"></span>`;
+        cells += `<span class="cell ${scoreClass(h.score)}${h.wx === "storm" ? " stormy" : ""}" title="${fmtDay(h.t)} ${fmtHour(h.t)} — ${h.score.toFixed(1)}${h.wx === "storm" ? " ⛈" : ""}"></span>`;
       }
       return cells;
     };
@@ -176,6 +198,7 @@
         <div class="strip">${strip(z)}</div>
         <div class="zone-detail">
           <div>${reason(z, z.now.sw, z.now.windWord)}</div>
+          <div class="detail-access">${z.now.sw.airT != null ? Math.round(z.now.sw.airT) + "°F air" : ""}${z.now.sw.pprob != null ? " · " + z.now.sw.pprob + "% rain chance" : ""}${z.now.wx === "storm" ? " · ⛈ lightning risk NOW" : ""}</div>
           <div class="detail-access">📍 ${z.access} · beach faces ${compass(z.facing)}</div>
         </div>
       </div>`).join("");
@@ -190,7 +213,7 @@
       </section>` : "";
 
     app.innerHTML = heroHTML + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
-      <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing</span></div>` +
+      <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing <i class="cell s0 stormy"></i>⛈</span></div>` +
       rows + tideHTML + `
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
 

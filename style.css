@@ -137,6 +137,14 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .cell.s6 { background: var(--s6); box-shadow: 0 0 5px rgba(58, 164, 119, 0.4); }
 .cell.s8 { background: var(--s8); box-shadow: 0 0 7px rgba(69, 201, 171, 0.55); }
 .daybreak { width: 2px; height: 18px; background: var(--muted); opacity: 0.4; border-radius: 1px; }
+.cell.stormy { background-image: linear-gradient(180deg, #e07856 0 3.5px, transparent 3.5px); opacity: 1; }
+
+.wx-warn {
+  display: inline-block; margin-top: 9px; font-size: 13px; font-weight: 650;
+  color: #e08a72; background: rgba(224, 120, 86, 0.11);
+  box-shadow: inset 0 0 0 1px rgba(224, 120, 86, 0.30);
+  border-radius: 99px; padding: 4px 11px;
+}
 
 .zone-detail {
   max-height: 0; overflow: hidden; margin-top: 0; padding-top: 0; border-top: 0 solid var(--line);
