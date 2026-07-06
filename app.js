@@ -92,7 +92,7 @@
     const tideURL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=capecast&begin_date=${d0}&end_date=${d1s}&datum=MLLW&station=${TIDE.id}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
 
     // 5-day daily outlook from one mid-Banks point (Rodanthe) — sky trend is regional.
-    const dailyURL = `https://api.open-meteo.com/v1/forecast?latitude=35.58&longitude=-75.43&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&forecast_days=5&temperature_unit=fahrenheit&wind_speed_unit=kn&timezone=America%2FNew_York`;
+    const dailyURL = `https://api.open-meteo.com/v1/forecast?latitude=35.58&longitude=-75.43&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset&hourly=cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation&forecast_days=5&temperature_unit=fahrenheit&wind_speed_unit=kn&timezone=America%2FNew_York`;
     const [marine, wind, tide, buoys, daily] = await Promise.all([
       fetch(marineURL).then(r => r.json()),
       fetch(windURL).then(r => r.json()),
@@ -160,6 +160,50 @@
     });
     if (!rows.length) return "";
     return `<section class="buoys card"><span class="buoy-tag">Live buoys</span>${rows.join("")}</section>`;
+  }
+
+  // ---------- golden hour wow factor ----------
+  // Vivid sky recipe: mid/high clouds as a canvas (~30-60% ideal, clear = bland,
+  // overcast = blocked), low clouds kill the horizon light path, dry air saturates
+  // color, and clearing right after rain is a bonus.
+  function wowScore(hourly, iso) {
+    const idx = hourly.time.indexOf(iso.slice(0, 13) + ":00");
+    if (idx < 0) return null;
+    const low = hourly.cloud_cover_low[idx] ?? 0, mid = hourly.cloud_cover_mid[idx] ?? 0,
+          high = hourly.cloud_cover_high[idx] ?? 0, rh = hourly.relative_humidity_2m[idx] ?? 70;
+    const canvas = Math.min(100, mid * 0.65 + high);
+    // asymmetric bell: no canvas is fatal, over-canvas only mostly fatal (thin decks still light up)
+    const fCanvas = Math.exp(-Math.pow((canvas - 45) / (canvas < 45 ? 35 : 55), 2));
+    const fLow = Math.max(0, 1 - Math.pow(low / 70, 1.3));
+    const fHum = clamp(1.3 - rh / 100, 0.45, 1.0);
+    const prior = (hourly.precipitation[idx - 2] ?? 0) + (hourly.precipitation[idx - 1] ?? 0);
+    const bonus = prior > 0.3 && low < 40 ? 1.2 : 0;
+    return clamp(fCanvas * fLow * fHum * 10 + bonus, 0, 10);
+  }
+  const wowWord = s => s >= 8 ? "all-timer potential" : s >= 6.5 ? "glowing" : s >= 4.5 ? "some color" : s >= 2.5 ? "mild" : "dud";
+  const wowClass = s => s >= 8 ? "wow-max" : s >= 6.5 ? "wow-hi" : s >= 4.5 ? "wow-mid" : "wow-low";
+
+  function goldenHTML(daily) {
+    if (!daily || !daily.daily || !daily.daily.sunrise || !daily.hourly) return "";
+    const d = daily.daily, now = nowET();
+    const events = [];
+    d.time.forEach((day, i) => {
+      events.push({ type: "Sunrise", icon: "🌅", iso: d.sunrise[i] });
+      events.push({ type: "Sunset", icon: "🌇", iso: d.sunset[i] });
+    });
+    const next = events.filter(e => e.iso > now).slice(0, 2);
+    if (!next.length) return "";
+    const rows = next.map(e => {
+      const wow = wowScore(daily.hourly, e.iso);
+      const today = e.iso.slice(0, 10) === now.slice(0, 10);
+      const when = `${today ? "" : fmtDay(e.iso) + " "}${fmtClock(e.iso.slice(11))}`;
+      return `<div class="g-event">
+        <span class="g-icon">${e.icon}</span>
+        <span class="g-name">${e.type} <b>${when}</b></span>
+        ${wow != null ? `<span class="wow ${wowClass(wow)}">${wow.toFixed(1)} · ${wowWord(wow)}</span>` : ""}
+      </div>`;
+    }).join("");
+    return `<section class="golden card"><div class="tide-title">Golden hours <span class="muted">(color forecast, mid-Banks)</span></div>${rows}</section>`;
   }
 
   const WX_ICON = code =>
@@ -276,7 +320,7 @@
 
     app.innerHTML = heroHTML + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
       <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing <i class="cell s0 stormy"></i>⛈</span></div>` +
-      rows + dailyHTML(daily) + tideHTML + `
+      rows + goldenHTML(daily) + dailyHTML(daily) + tideHTML + `
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
 
     app.querySelectorAll(".zone").forEach(el => el.addEventListener("click", () => el.classList.toggle("open")));
