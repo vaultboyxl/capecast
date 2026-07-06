@@ -154,6 +154,24 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .zone.open .zone-detail { max-height: 160px; margin-top: 11px; padding-top: 11px; border-top-width: 1px; }
 .detail-access { color: var(--muted); font-size: 13px; margin-top: 5px; }
 
+/* ---------- pins ---------- */
+.pin {
+  background: none; border: 0; cursor: pointer; padding: 2px 2px 2px 6px;
+  font-size: 17px; line-height: 1; color: var(--muted); opacity: 0.6;
+  transition: color 0.2s, opacity 0.2s, transform 0.15s;
+}
+.pin:hover { opacity: 1; }
+.pin:active { transform: scale(1.25); }
+.zone.pinned .pin { color: var(--sunset); opacity: 1; }
+.zone.pinned {
+  border-color: rgba(232, 164, 94, 0.35);
+  background: linear-gradient(180deg, rgba(232, 164, 94, 0.05), rgba(255, 255, 255, 0) 45%), var(--card);
+}
+.spot-extra { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line); font-size: 13px; }
+.spot-fact { display: inline-flex; align-items: center; gap: 5px; color: var(--text); }
+.spot-fact .chip { min-width: 0; }
+.zone.pinned .zone-detail { max-height: none; margin-top: 9px; padding-top: 0; border-top: 0; }
+
 /* ---------- 5-day sky ---------- */
 .daily-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; }
 .day { border-radius: 12px; padding: 8px 2px; background: rgba(255, 255, 255, 0.02); }

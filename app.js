@@ -55,6 +55,23 @@
     return { score: clamp(size * windF, 0, 10), windWord, wx };
   }
 
+  // ---------- pins (persisted; 13th Ave pinned by default on first visit) ----------
+  const PIN_KEY = "capecast-pins";
+  const getPins = () => { try { return JSON.parse(localStorage.getItem(PIN_KEY)) ?? ["ave13"]; } catch { return ["ave13"]; } };
+  const togglePin = id => {
+    const p = getPins(), i = p.indexOf(id);
+    i >= 0 ? p.splice(i, 1) : p.push(id);
+    localStorage.setItem(PIN_KEY, JSON.stringify(p));
+  };
+
+  const fmtClock = hhmm => { const [h, m] = hhmm.split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")}${h < 12 ? "am" : "pm"}`; };
+  const nextTides = (tide, n) => {
+    if (!tide || !tide.predictions) return [];
+    const now = nowET().replace("T", " ");
+    return tide.predictions.filter(p => p.t > now).slice(0, n)
+      .map(p => `${p.type === "H" ? "▲" : "▼"} ${fmtClock(p.t.slice(11))}`);
+  };
+
   const scoreClass = s => s >= 8 ? "s8" : s >= 6 ? "s6" : s >= 4 ? "s4" : s >= 2 ? "s2" : "s0";
   const scoreWord  = s => s >= 8 ? "firing" : s >= 6 ? "good" : s >= 4 ? "surfable" : s >= 2 ? "junky" : "flat/blown";
 
@@ -108,16 +125,22 @@
     return { zones, times, iNow };
   }
 
-  // Best 3h daylight window across all zones in the next 48h.
+  // Best 3h daylight window for one zone in the next 48h.
+  function bestWindowZone(z, iNow) {
+    let best = null;
+    for (let i = iNow; i < Math.min(z.hours.length - 2, iNow + 48); i++) {
+      const h = hourOf(z.hours[i].t);
+      if (h < 6 || h > 18) continue;
+      const avg = (z.hours[i].score + z.hours[i + 1].score + z.hours[i + 2].score) / 3;
+      if (!best || avg > best.avg) best = { zone: z, i, avg };
+    }
+    return best;
+  }
   function bestWindow(model) {
     let best = null;
     for (const z of model.zones) {
-      for (let i = model.iNow; i < Math.min(z.hours.length - 2, model.iNow + 48); i++) {
-        const h = hourOf(z.hours[i].t);
-        if (h < 6 || h > 18) continue;
-        const avg = (z.hours[i].score + z.hours[i + 1].score + z.hours[i + 2].score) / 3;
-        if (!best || avg > best.avg) best = { zone: z, i, avg };
-      }
+      const b = bestWindowZone(z, model.iNow);
+      if (b && (!best || b.avg > best.avg)) best = b;
     }
     return best;
   }
@@ -206,8 +229,21 @@
     };
 
     const windClass = w => w === "offshore" ? "w-off" : w === "onshore" ? "w-on" : w === "cross-shore" ? "w-cross" : "w-light";
-    const rows = ranked.map(z => `
-      <div class="zone card" data-id="${z.id}">
+    const pins = getPins();
+    const ordered = [...ranked.filter(z => pins.includes(z.id)), ...ranked.filter(z => !pins.includes(z.id))];
+
+    const zoneCard = z => {
+      const isPinned = pins.includes(z.id);
+      const bw = isPinned ? bestWindowZone(z, model.iNow) : null;
+      const tides = isPinned ? nextTides(tide, 2) : [];
+      const spotExtra = isPinned ? `
+        <div class="spot-extra">
+          ${tides.length ? `<span class="spot-fact">🌊 tide ${tides.join(" · ")}</span>` : ""}
+          ${z.now.sw.airT != null ? `<span class="spot-fact">${WX_ICON(z.now.sw.wxCode ?? 0)} ${Math.round(z.now.sw.airT)}° · ${z.now.sw.pprob ?? 0}%💧</span>` : ""}
+          ${bw ? `<span class="spot-fact">⭐ best 48h: ${fmtDay(z.hours[bw.i].t)} ${fmtHour(z.hours[bw.i].t)}–${fmtHour(z.hours[bw.i + 2].t)} <b class="chip ${scoreClass(bw.avg)}" style="font-size:12px;padding:1px 6px">${bw.avg.toFixed(1)}</b></span>` : ""}
+        </div>` : "";
+      return `
+      <div class="zone card${isPinned ? " pinned" : ""}" data-id="${z.id}">
         <div class="zone-head">
           <span class="chip ${scoreClass(z.now.score)}">${z.now.score.toFixed(1)}</span>
           <span class="zone-name">${z.name}</span>
@@ -215,14 +251,18 @@
             <span class="wind-arrow" style="transform:rotate(${Math.round(z.now.sw.windD) + 180}deg)">↑</span>
             ${Math.round(z.now.sw.windS)}kt ${compass(z.now.sw.windD)}
           </span>
+          <button class="pin" data-pin="${z.id}" aria-label="${isPinned ? "unpin" : "pin"} ${z.name}" title="${isPinned ? "unpin" : "pin to top"}">${isPinned ? "★" : "☆"}</button>
         </div>
         <div class="strip">${strip(z)}</div>
+        ${spotExtra}
         <div class="zone-detail">
           <div>${reason(z, z.now.sw, z.now.windWord)}</div>
           <div class="detail-access">${z.now.sw.airT != null ? Math.round(z.now.sw.airT) + "°F air" : ""}${z.now.sw.pprob != null ? " · " + z.now.sw.pprob + "% rain chance" : ""}${z.now.wx === "storm" ? " · ⛈ lightning risk NOW" : ""}</div>
           <div class="detail-access">📍 ${z.access} · beach faces ${compass(z.facing)}</div>
         </div>
-      </div>`).join("");
+      </div>`;
+    };
+    const rows = ordered.map(zoneCard).join("");
 
     const tideHTML = tide && tide.predictions ? `
       <section class="tide card">
@@ -239,6 +279,11 @@
       <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
 
     app.querySelectorAll(".zone").forEach(el => el.addEventListener("click", () => el.classList.toggle("open")));
+    app.querySelectorAll(".pin").forEach(b => b.addEventListener("click", e => {
+      e.stopPropagation();
+      togglePin(b.dataset.pin);
+      render(model, tide, buoys, daily);
+    }));
     $("#updated").textContent = "updated " + new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) + " ET";
   }
 

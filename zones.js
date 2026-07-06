@@ -6,6 +6,7 @@
 window.ZONES = [
   { id: "corolla",  name: "Corolla",                    facing: 70,  lat: 36.36,  lon: -75.77, access: "4x4 north beaches; Hwy 12 accesses in town" },
   { id: "duck",     name: "Duck",                       facing: 72,  lat: 36.16,  lon: -75.72, access: "Limited public parking — resident-ish; FRF pier just south" },
+  { id: "ave13",    name: "13th Ave · Southern Shores", facing: 73,  lat: 36.13,  lon: -75.71, access: "13th Ave beach access, Duck/Southern Shores line" },
   { id: "kdh",      name: "Kitty Hawk / Kill Devil Hills", facing: 75, lat: 36.02, lon: -75.64, access: "Tons of public accesses off the Beach Rd" },
   { id: "nagshead", name: "Nags Head / Jennette's",     facing: 78,  lat: 35.90,  lon: -75.56, access: "Jennette's Pier lot; bathhouses along Old Oregon Inlet Rd" },
   { id: "coquina",  name: "Coquina / Bodie Island",     facing: 82,  lat: 35.82,  lon: -75.52, access: "Coquina Beach lot; Ramp 2 & 4" },
