@@ -1,0 +1,70 @@
+:root {
+  --bg: #0b1620; --card: #121f2b; --card2: #16283a; --text: #e8f1f5; --muted: #7d95a3;
+  --s0: #2a3742; --s2: #8a6d3b; --s4: #b7952e; --s6: #2f9e6e; --s8: #35c4b5;
+  --accent: #35c4b5;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding-bottom: 24px;
+}
+.topbar {
+  display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap;
+  padding: 14px 16px 6px; gap: 4px;
+}
+.brand { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.brand-accent { color: var(--accent); }
+.tag { color: var(--muted); font-size: 12px; }
+main { max-width: 640px; margin: 0 auto; padding: 8px 12px; display: flex; flex-direction: column; gap: 10px; }
+.card { background: var(--card); border-radius: 14px; padding: 14px 16px; }
+.loading, .error { color: var(--muted); text-align: center; padding: 40px 16px; }
+
+/* hero */
+.hero { background: linear-gradient(160deg, var(--card2), var(--card)); border: 1px solid #1e3346; }
+.hero-label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+.hero-label strong { color: var(--text); font-size: 15px; letter-spacing: 0; text-transform: none; }
+.hero-score { font-size: 56px; font-weight: 800; line-height: 1.1; display: flex; align-items: baseline; gap: 10px; }
+.hero-word { font-size: 15px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.hero.s8 .hero-score, .hero.s8 .hero-word { color: var(--s8); }
+.hero.s6 .hero-score, .hero.s6 .hero-word { color: var(--s6); }
+.hero.s4 .hero-score, .hero.s4 .hero-word { color: var(--s4); }
+.hero.s2 .hero-score, .hero.s2 .hero-word { color: var(--s2); }
+.hero.s0 .hero-score { color: var(--muted); }
+.hero-reason { margin-top: 4px; }
+.hero-access { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.runners { display: flex; gap: 14px; margin-top: 10px; color: var(--muted); font-size: 14px; }
+.runner b { color: var(--text); }
+
+/* best window */
+.bestwin { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+.bw-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); border: 1px solid var(--accent); border-radius: 99px; padding: 2px 8px; }
+
+/* zone rows */
+.zone { cursor: pointer; }
+.zone-head { display: flex; align-items: center; gap: 10px; }
+.zone-name { font-weight: 650; flex: 1; }
+.zone-wind { color: var(--muted); font-size: 13px; }
+.chip { border-radius: 8px; padding: 2px 8px; font-weight: 800; font-size: 14px; color: #08131a; min-width: 40px; text-align: center; }
+.chip.s0 { background: var(--s0); color: var(--muted); }
+.chip.s2 { background: var(--s2); } .chip.s4 { background: var(--s4); }
+.chip.s6 { background: var(--s6); } .chip.s8 { background: var(--s8); }
+.strip { display: flex; gap: 2px; margin-top: 10px; align-items: center; }
+.cell { flex: 1; height: 10px; border-radius: 2px; display: inline-block; min-width: 3px; }
+.cell.s0 { background: var(--s0); } .cell.s2 { background: var(--s2); }
+.cell.s4 { background: var(--s4); } .cell.s6 { background: var(--s6); }
+.cell.s8 { background: var(--s8); }
+.daybreak { width: 2px; height: 16px; background: var(--muted); opacity: .5; border-radius: 1px; }
+.zone-detail { display: none; margin-top: 10px; font-size: 14px; color: var(--text); border-top: 1px solid #1e3346; padding-top: 10px; }
+.zone.open .zone-detail { display: block; }
+.detail-access { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+/* strips legend + tide + footer */
+.strip-legend { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 11px; padding: 0 4px; }
+.legend { display: flex; align-items: center; gap: 4px; }
+.legend .cell { flex: none; width: 12px; }
+.tide-title { font-weight: 650; margin-bottom: 8px; }
+.muted { color: var(--muted); font-weight: 400; font-size: 12px; }
+.tide-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; color: var(--muted); }
+.tide-item b { color: var(--text); font-weight: 600; }
+footer { color: var(--muted); font-size: 12px; text-align: center; padding: 10px 20px; }

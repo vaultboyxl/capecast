@@ -1,0 +1,13 @@
+{
+  "name": "CapeCast — OBX Spot Router",
+  "short_name": "CapeCast",
+  "description": "Where to paddle out on the Outer Banks, right now.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1620",
+  "theme_color": "#0b1620",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
