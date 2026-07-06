@@ -247,18 +247,11 @@
         const b = zoneDayBest(z, day);
         if (b && (!best || b.score > best.score)) best = b;
       }
-      const pinLines = pins.map(id => {
-        const z = model.zones.find(x => x.id === id);
-        if (!z) return "";
-        const b = zoneDayBest(z, day);
-        return b ? `<div class="o-pin">★ ${z.name.split(" · ")[0]} <b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b> <i>~${fmtHour(b.t)}</i></div>` : "";
-      }).join("");
       const wow = d.sunset[di] ? wowScore(daily.hourly, d.sunset[di]) : null;
       return `<div class="o-row${d.weather_code[di] >= 95 ? " day-storm" : ""}">
         <span class="o-day">${di === 0 ? "Today" : fmtDay(day + "T12:00")}<i>${day.slice(5).replace("-", "/")}</i></span>
         <div class="o-main">
           <div class="o-surf">${best ? `<b class="chip ${scoreClass(best.score)}">${best.score.toFixed(1)}</b> <span class="o-zone">${best.zone.name.split(" · ")[0].split(" / ")[0]} <i>~${fmtHour(best.t)}</i></span>` : "wave model ends"}</div>
-          ${pinLines}
           <div class="o-sub">
             <span>${WX_ICON(d.weather_code[di])} ${Math.round(d.temperature_2m_max[di])}°</span>
             <span>${d.precipitation_probability_max[di]}%💧</span>
@@ -268,8 +261,22 @@
         </div>
       </div>`;
     }).join("");
-    return `<section class="card outlook">${rows}
-      <div class="o-note">Surf = best zone on the Banks each day, with the peak hour. ★ = your pinned spots. 🌇 = sunset color forecast 0–10 (dud → mild → color → glow → epic). Wave model runs 8 days; trust days 6–8 loosely.</div>
+    // One tile per pinned spot: that zone's 8 days at a glance.
+    const pinTiles = pins.map(id => {
+      const z = model.zones.find(x => x.id === id);
+      if (!z) return "";
+      const cols = d.time.slice(0, 8).map((day, di) => {
+        const b = zoneDayBest(z, day);
+        return `<div class="day">
+          <div class="day-name">${di === 0 ? "Now" : fmtDay(day + "T12:00")}</div>
+          ${b ? `<b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b><div class="day-meta">~${fmtHour(b.t)}</div>` : `<div class="day-meta">—</div>`}
+        </div>`;
+      }).join("");
+      return `<section class="card zone pinned pin8"><div class="tide-title">★ ${z.name} <span class="muted">(your spot, 8-day)</span></div><div class="daily-row p8-row">${cols}</div></section>`;
+    }).join("");
+
+    return pinTiles + `<section class="card outlook">${rows}
+      <div class="o-note">Surf = best zone on the Banks each day, with the peak hour. 🌇 = sunset color forecast 0–10 (dud → mild → color → glow → epic). Wave model runs 8 days; trust days 6–8 loosely.</div>
     </section>`;
   }
 
