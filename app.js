@@ -181,6 +181,7 @@
     return clamp(fCanvas * fLow * fHum * 10 + bonus, 0, 10);
   }
   const wowWord = s => s >= 8 ? "all-timer potential" : s >= 6.5 ? "glowing" : s >= 4.5 ? "some color" : s >= 2.5 ? "mild" : "dud";
+  const wowShort = s => s >= 8 ? "epic" : s >= 6.5 ? "glow" : s >= 4.5 ? "color" : s >= 2.5 ? "mild" : "dud";
   const wowClass = s => s >= 8 ? "wow-max" : s >= 6.5 ? "wow-hi" : s >= 4.5 ? "wow-mid" : "wow-low";
 
   function goldenHTML(daily) {
@@ -203,7 +204,8 @@
         ${wow != null ? `<span class="wow ${wowClass(wow)}">${wow.toFixed(1)} · ${wowWord(wow)}</span>` : ""}
       </div>`;
     }).join("");
-    return `<section class="golden card"><div class="tide-title">Golden hours <span class="muted">(color forecast, mid-Banks)</span></div>${rows}</section>`;
+    return `<section class="golden card"><div class="tide-title">Golden hours <span class="muted">(mid-Banks)</span></div>${rows}
+      <div class="g-sub">Sky-color forecast, 0–10 — scores the ingredients of a fiery sky: high clouds to catch light, a clear horizon, dry air. 6.5+ is worth the walk; 8+ bring the camera.</div></section>`;
   }
 
   const WX_ICON = code =>
@@ -261,13 +263,13 @@
             <span>${WX_ICON(d.weather_code[di])} ${Math.round(d.temperature_2m_max[di])}°</span>
             <span>${d.precipitation_probability_max[di]}%💧</span>
             <span>💨 ${Math.round(d.wind_speed_10m_max[di])}kt ${compass(d.wind_direction_10m_dominant[di])}</span>
-            ${wow != null ? `<span class="wow ${wowClass(wow)}" title="sunset color forecast">🌇 ${wow.toFixed(1)}</span>` : ""}
+            ${wow != null ? `<span class="wow ${wowClass(wow)}" title="sunset color forecast, 0–10">🌇 ${wow.toFixed(1)} ${wowShort(wow)}</span>` : ""}
           </div>
         </div>
       </div>`;
     }).join("");
     return `<section class="card outlook">${rows}
-      <div class="o-note">Surf = best zone on the Banks each day, with the peak hour. 🌇 = sunset color forecast. Wave model runs 8 days; trust days 6–8 loosely.</div>
+      <div class="o-note">Surf = best zone on the Banks each day, with the peak hour. ★ = your pinned spots. 🌇 = sunset color forecast 0–10 (dud → mild → color → glow → epic). Wave model runs 8 days; trust days 6–8 loosely.</div>
     </section>`;
   }
 
