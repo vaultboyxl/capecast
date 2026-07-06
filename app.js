@@ -228,21 +228,35 @@
   function outlookHTML(model, daily) {
     if (!daily || !daily.daily) return "";
     const d = daily.daily;
+    const pins = getPins();
+    const zoneDayBest = (z, day) => {
+      let best = null;
+      for (const h of z.hours) {
+        if (!h.t.startsWith(day)) continue;
+        const hr = hourOf(h.t);
+        if (hr < 6 || hr > 19) continue;
+        if (!best || h.score > best.score) best = { score: h.score, zone: z, t: h.t };
+      }
+      return best;
+    };
     const rows = d.time.slice(0, 8).map((day, di) => {
       let best = null;
       for (const z of model.zones) {
-        for (const h of z.hours) {
-          if (!h.t.startsWith(day)) continue;
-          const hr = hourOf(h.t);
-          if (hr < 6 || hr > 19) continue;
-          if (!best || h.score > best.score) best = { score: h.score, zone: z, t: h.t };
-        }
+        const b = zoneDayBest(z, day);
+        if (b && (!best || b.score > best.score)) best = b;
       }
+      const pinLines = pins.map(id => {
+        const z = model.zones.find(x => x.id === id);
+        if (!z) return "";
+        const b = zoneDayBest(z, day);
+        return b ? `<div class="o-pin">★ ${z.name.split(" · ")[0]} <b class="chip ${scoreClass(b.score)}">${b.score.toFixed(1)}</b> <i>~${fmtHour(b.t)}</i></div>` : "";
+      }).join("");
       const wow = d.sunset[di] ? wowScore(daily.hourly, d.sunset[di]) : null;
       return `<div class="o-row${d.weather_code[di] >= 95 ? " day-storm" : ""}">
         <span class="o-day">${di === 0 ? "Today" : fmtDay(day + "T12:00")}<i>${day.slice(5).replace("-", "/")}</i></span>
         <div class="o-main">
           <div class="o-surf">${best ? `<b class="chip ${scoreClass(best.score)}">${best.score.toFixed(1)}</b> <span class="o-zone">${best.zone.name.split(" · ")[0].split(" / ")[0]} <i>~${fmtHour(best.t)}</i></span>` : "wave model ends"}</div>
+          ${pinLines}
           <div class="o-sub">
             <span>${WX_ICON(d.weather_code[di])} ${Math.round(d.temperature_2m_max[di])}°</span>
             <span>${d.precipitation_probability_max[di]}%💧</span>
