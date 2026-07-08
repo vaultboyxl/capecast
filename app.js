@@ -147,19 +147,32 @@
   }
 
   // Live NDBC obs card. Hidden if the feed is missing or older than 4h — a wrong
-  // "live" number is worse than none.
+  // "live" number is worse than none. Upstream stations preview incoming swell
+  // (~18–24h out); every row that has both shows model-vs-buoy so the forecast is
+  // checked against reality in the open.
   function buoyHTML(buoys) {
     if (!buoys || !buoys.stations) return "";
     const ageH = (Date.now() - new Date(buoys.updated)) / 36e5;
     if (isNaN(ageH) || ageH > 4) return "";
-    const rows = Object.values(buoys.stations).filter(Boolean).map(s => {
+    const row = s => {
       const wave = s.wvht_ft != null ? `<b>${s.wvht_ft}ft</b> @ ${s.dpd_s}s ${s.mwd_deg != null ? compass(s.mwd_deg) : ""}` : "wave sensor down";
       const wind = s.wspd_kt != null ? ` · ${s.wspd_kt}kt ${compass(s.wdir_deg)}` : "";
       const temp = s.wtmp_f != null ? ` · ${s.wtmp_f}°` : "";
-      return `<span class="buoy-item">${s.name}: ${wave}${wind}${temp}</span>`;
-    });
-    if (!rows.length) return "";
-    return `<section class="buoys card"><span class="buoy-tag">Live buoys</span>${rows.join("")}</section>`;
+      let receipt = "";
+      if (s.model_wvht_ft != null && s.wvht_ft != null) {
+        const d = s.model_wvht_ft - s.wvht_ft;
+        receipt = `<span class="buoy-model">model ${s.model_wvht_ft}ft / buoy ${s.wvht_ft}ft (Δ ${d >= 0 ? "+" : ""}${d.toFixed(1)}ft)</span>`;
+      }
+      return `<div class="buoy-row"><span class="buoy-item">${s.name}: ${wave}${wind}${temp}</span>${receipt}</div>`;
+    };
+    const all = Object.values(buoys.stations).filter(Boolean);
+    const local = all.filter(s => !s.upstream).map(row);
+    const upstream = all.filter(s => s.upstream).map(row);
+    if (!local.length && !upstream.length) return "";
+    const upBlock = upstream.length
+      ? `<div class="buoy-divider"><span>upstream · swell here arrives ~18–24h later</span></div>${upstream.join("")}`
+      : "";
+    return `<section class="buoys card"><div class="buoy-head"><span class="buoy-tag">Live buoys</span></div>${local.join("")}${upBlock}<div class="buoy-caption">model vs buoy = today's forecast checked against what the ocean is actually doing. When they disagree, trust the buoy.</div></section>`;
   }
 
   // ---------- golden hour wow factor ----------

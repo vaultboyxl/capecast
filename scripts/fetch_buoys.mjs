@@ -2,9 +2,12 @@
 // Run with --snapshot to also append today's calibration log under data/log/.
 // NDBC quirk: sensors report intermittently ("MM"), so each field takes the newest
 // non-missing value within a per-field lookback window.
-const STATIONS = {
-  "41025": { name: "Diamond Shoals" },
-  "44100": { name: "Duck (waverider)" },
+const STATIONS = { // positions from NDBC station_table.txt
+  "41025": { name: "Diamond Shoals", lat: 35.026, lon: -75.380 },
+  "44100": { name: "Duck (waverider)", lat: 36.257, lon: -75.593 },
+  // Upstream: swell passing these typically reaches OBX beaches ~18–24h later.
+  "41001": { name: "E Hatteras", lat: 34.791, lon: -72.420, upstream: true },
+  "41002": { name: "S Hatteras", lat: 31.743, lon: -74.955, upstream: true },
 };
 const M2FT = 3.28084, MS2KT = 1.94384;
 const MAX_AGE_H = 6;
@@ -55,6 +58,7 @@ async function fetchStation(id) {
         wspd = newest("WSPD"), wdir = newest("WDIR"), wtmp = newest("WTMP");
   return {
     name: STATIONS[id].name,
+    ...(STATIONS[id].upstream ? { upstream: true } : {}),
     wvht_ft: wvht ? +(wvht.v * M2FT).toFixed(1) : null,
     dpd_s: dpd ? Math.round(dpd.v) : null,
     mwd_deg: mwd ? Math.round(mwd.v) : null,
@@ -70,6 +74,20 @@ for (const id of Object.keys(STATIONS)) {
   try { out.stations[id] = await fetchStation(id); }
   catch (e) { console.error(e.message); out.stations[id] = null; }
 }
+
+// Model-vs-buoy receipt: the forecast model's current wave height at each buoy's
+// position, so the app can show "model X / buoy Y (Δ)" — the forecast checked
+// against reality, live. Non-fatal: rows just lose the delta if this fetch fails.
+try {
+  const ids = Object.keys(STATIONS);
+  const lats = ids.map((id) => STATIONS[id].lat).join(","), lons = ids.map((id) => STATIONS[id].lon).join(",");
+  const res = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&current=wave_height`).then((r) => r.json());
+  const arr = Array.isArray(res) ? res : [res];
+  ids.forEach((id, i) => {
+    const wh = arr[i]?.current?.wave_height;
+    if (out.stations[id] && wh != null) out.stations[id].model_wvht_ft = +(wh * M2FT).toFixed(1);
+  });
+} catch (e) { console.error("model wave fetch:", e.message); }
 const { writeFileSync, mkdirSync } = await import("node:fs");
 writeFileSync("buoys.json", JSON.stringify(out, null, 1));
 console.log("buoys.json written:", JSON.stringify(out.stations));
@@ -83,12 +101,7 @@ if (process.argv.includes("--snapshot")) {
     [35.82, -75.52], [35.70, -75.45], [35.58, -75.43], [35.34, -75.46],
     [35.24, -75.48], [35.17, -75.60], [35.16, -75.69], [35.06, -75.95],
   ];
-  const BUOY_PTS = { // NDBC station_table.txt positions
-    "41001": [34.791, -72.420], // E Hatteras (upstream)
-    "41002": [31.743, -74.955], // S Hatteras (upstream)
-    "41025": [35.026, -75.380], // Diamond Shoals
-    "44100": [36.257, -75.593], // Duck waverider
-  };
+  const BUOY_PTS = Object.fromEntries(Object.entries(STATIONS).map(([id, s]) => [id, [s.lat, s.lon]]));
   // Dates in ET (the forecast API's timezone) so a run at any hour stays coherent.
   const day = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   const [y, m, d] = day.split("-").map(Number);

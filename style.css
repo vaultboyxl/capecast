@@ -85,13 +85,22 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .runner b { color: var(--text); font-family: var(--display); }
 
 /* ---------- live buoys ---------- */
-.buoys { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); padding: 11px 17px; }
+.buoys { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); padding: 11px 17px; }
 .buoy-tag {
   font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
   color: var(--accent); border: 1px solid rgba(69, 201, 171, 0.4); border-radius: 99px; padding: 2.5px 9px;
   box-shadow: 0 0 10px rgba(69, 201, 171, 0.12) inset;
 }
+.buoy-head { display: flex; align-items: center; }
+.buoy-row { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 14px; flex-wrap: wrap; }
 .buoy-item b { color: var(--text); }
+.buoy-model { font-size: 12px; white-space: nowrap; opacity: 0.85; }
+.buoy-divider {
+  display: flex; align-items: center; gap: 8px; margin-top: 3px;
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.8;
+}
+.buoy-divider::before, .buoy-divider::after { content: ""; height: 1px; background: var(--line); flex: 1; }
+.buoy-caption { margin-top: 4px; font-size: 11.5px; opacity: 0.7; }
 
 /* ---------- best window ---------- */
 .bestwin { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; font-size: 14px; }
