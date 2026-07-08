@@ -55,9 +55,9 @@
     return { score: clamp(size * windF, 0, 10), windWord, wx };
   }
 
-  // ---------- pins (persisted; 13th Ave pinned by default on first visit) ----------
+  // ---------- pins (persisted; none by default — the product ships no opinion about YOUR spot) ----------
   const PIN_KEY = "capecast-pins";
-  const getPins = () => { try { return JSON.parse(localStorage.getItem(PIN_KEY)) ?? ["ave13"]; } catch { return ["ave13"]; } };
+  const getPins = () => { try { return JSON.parse(localStorage.getItem(PIN_KEY)) ?? []; } catch { return []; } };
   const togglePin = id => {
     const p = getPins(), i = p.indexOf(id);
     i >= 0 ? p.splice(i, 1) : p.push(id);
@@ -93,17 +93,17 @@
 
     // 5-day daily outlook from one mid-Banks point (Rodanthe) — sky trend is regional.
     const dailyURL = `https://api.open-meteo.com/v1/forecast?latitude=35.58&longitude=-75.43&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset&hourly=cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation&forecast_days=8&temperature_unit=fahrenheit&wind_speed_unit=kn&timezone=America%2FNew_York`;
-    const [marine, wind, tide, buoys, daily] = await Promise.all([
+    // ?stormtest=1 loads the archived Erin fixture so hurricane mode is debugged
+    // before a real system, per the roadmap.
+    const stormSrc = new URLSearchParams(location.search).has("stormtest") ? "./fixtures/storms_test.json" : "./storms.json";
+    const [marine, wind, tide, buoys, daily, storms] = await Promise.all([
       fetch(marineURL).then(r => r.json()),
       fetch(windURL).then(r => r.json()),
       fetch(tideURL).then(r => r.json()).catch(() => null),
       fetch("./buoys.json").then(r => r.json()).catch(() => null),
       fetch(dailyURL).then(r => r.json()).catch(() => null),
+      fetch(stormSrc).then(r => r.json()).catch(() => null),
     ]);
-    // ?stormtest=1 loads the archived Erin fixture so hurricane mode is debugged
-    // before a real system, per the roadmap.
-    const stormSrc = new URLSearchParams(location.search).has("stormtest") ? "./fixtures/storms_test.json" : "./storms.json";
-    const storms = await fetch(stormSrc).then(r => r.json()).catch(() => null);
     return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide, buoys, daily, storms };
   }
 
@@ -154,7 +154,9 @@
   // "live" number is worse than none. Upstream stations preview incoming swell
   // (~18–24h out); every row that has both shows model-vs-buoy so the forecast is
   // checked against reality in the open.
-  function buoyHTML(buoys) {
+  // nm from Cape Hatteras to the upstream stations (positions in scripts/fetch_buoys.mjs).
+  const UPSTREAM_NM = { "E Hatteras": 155, "S Hatteras": 212 };
+  function buoyHTML(buoys, stormActive) {
     if (!buoys || !buoys.stations) return "";
     const ageH = (Date.now() - new Date(buoys.updated)) / 36e5;
     if (isNaN(ageH) || ageH > 4) return "";
@@ -174,9 +176,22 @@
     const upstream = all.filter(s => s.upstream).map(row);
     if (!local.length && !upstream.length) return "";
     const upBlock = upstream.length
-      ? `<div class="buoy-divider"><span>upstream · swell here arrives ~18–24h later</span></div>${upstream.join("")}`
+      ? `<div class="buoy-divider"><span>upstream · swell there shows here ~8–24h later (longer period = faster)</span></div>${upstream.join("")}`
       : "";
-    return `<section class="buoys card"><div class="buoy-head"><span class="buoy-tag">Live buoys</span></div>${local.join("")}${upBlock}<div class="buoy-caption">model vs buoy = today's forecast checked against what the ocean is actually doing. When they disagree, trust the buoy.</div></section>`;
+    // Everyday swell-arrival heads-up: long-period energy upstream that the local
+    // stations don't show yet. ETA from group speed ≈ 1.5×period kt over the distance;
+    // shown as a range, suppressed when hurricane mode is already telling this story.
+    let arrival = "";
+    if (!stormActive) {
+      const localMax = Math.max(...all.filter(s => !s.upstream && s.wvht_ft != null).map(s => s.wvht_ft), 0);
+      const pulse = all.filter(s => s.upstream && s.dpd_s >= 10 && s.wvht_ft != null && localMax > 0 && s.wvht_ft >= 1.5 * localMax)
+        .sort((a, b) => b.wvht_ft - a.wvht_ft)[0];
+      if (pulse && UPSTREAM_NM[pulse.name]) {
+        const h = UPSTREAM_NM[pulse.name] / (1.5 * pulse.dpd_s);
+        arrival = `<div class="buoy-arrival">🌊 Long-period swell at ${pulse.name} (${pulse.wvht_ft}ft @ ${pulse.dpd_s}s) — if it holds, expect it on the Banks ~<b>${etaWhen(h * 0.8)} – ${etaWhen(h * 1.2)}</b></div>`;
+      }
+    }
+    return `<section class="buoys card"><div class="buoy-head"><span class="buoy-tag">Live buoys</span></div>${arrival}${local.join("")}${upBlock}<div class="buoy-caption">model vs buoy = today's forecast checked against what the ocean is actually doing. When they disagree, trust the buoy.</div></section>`;
   }
 
   // ---------- hurricane mode ----------
@@ -338,7 +353,7 @@
       const dayTides = tide && tide.predictions ? tide.predictions.filter(p => p.t.startsWith(day)) : [];
       const tideHTML2 = dayTides.length ? `<div class="od-line od-tide">🌊 ${dayTides.map(p => `${p.type === "H" ? "▲" : "▼"} ${fmtClock(p.t.slice(11))} <i>${(+p.v).toFixed(1)}ft</i>`).join(" · ")} <i class="od-note">Duck Pier; south of cape +~40min</i></div>` : "";
 
-      return `<div class="o-day-block${d.weather_code[di] >= 95 ? " day-storm" : ""}">
+      return `<div class="o-day-block${d.weather_code[di] >= 95 ? " day-storm" : ""}${di >= 5 ? " o-far" : ""}">
       <div class="o-row">
         <span class="o-day">${di === 0 ? "Today" : fmtDay(day + "T12:00")}<i>${day.slice(5).replace("-", "/")}</i></span>
         <div class="o-main">
@@ -377,7 +392,7 @@
     }).join("");
 
     return pinTiles + `<section class="card outlook">${rows}
-      <div class="o-note">Tap a day for detail — top 3 zones, your spots, golden hours, tides. 🌇 = sunset color 0–10 (dud → mild → color → glow → epic). Wave model runs 8 days; trust days 6–8 loosely.</div>
+      <div class="o-note">Tap a day for detail — top 3 zones, your spots, golden hours, tides. 🌇 = sunset color 0–10 (dud → mild → color → glow → epic). Days 6–8: trend only — trust it loosely.</div>
     </section>`;
   }
 
@@ -402,15 +417,38 @@
       return `<div class="wx-warn">⛈ Lightning risk ${day}${fmtHour(z.hours[start].t)}–${fmtHour(z.hours[Math.min(end + 1, z.hours.length - 1)].t)} — clear the water</div>`;
     };
 
+    // After ~6pm ET the question is "is dawn patrol on?" — the hero answers for
+    // tomorrow's 5–10am window instead of a lineup nobody will paddle into tonight.
+    const hrNow = hourOf(nowET());
+    const isNight = hrNow >= 18 || hrNow < 4;
+    let heroLabel = "Surf now", heroRanked = ranked.map(z => ({ z, focus: z.now, at: "" }));
+    if (isNight) {
+      const today = model.times[model.iNow].slice(0, 10);
+      const tmr = new Date(today + "T12:00:00Z"); tmr.setUTCDate(tmr.getUTCDate() + 1);
+      const tmrStr = tmr.toISOString().slice(0, 10);
+      const dawn = model.zones.map(z => {
+        let best = null;
+        for (const h of z.hours) {
+          if (!h.t.startsWith(tmrStr)) continue;
+          const hr = hourOf(h.t);
+          if (hr < 5 || hr > 10) continue;
+          if (!best || h.score > best.score) best = h;
+        }
+        return best ? { z, focus: best, at: ` · peak ~${fmtHour(best.t)}` } : null;
+      }).filter(Boolean).sort((a, b) => b.focus.score - a.focus.score);
+      if (dawn.length) { heroLabel = "Tomorrow am"; heroRanked = dawn; }
+    }
+    const hTop = heroRanked[0];
+    const SCORE_TIP = "score = where conditions line up — not bar truth";
     const heroHTML = `
-      <section class="hero card ${scoreClass(top.now.score)}">
-        <div class="hero-label">Surf now → <strong>${top.name}</strong></div>
-        <div class="hero-score"><span class="num">${top.now.score.toFixed(1)}</span><span class="hero-word">${scoreWord(top.now.score)}</span></div>
-        <div class="hero-reason">${reason(top, top.now.sw, top.now.windWord)}</div>
+      <section class="hero card ${scoreClass(hTop.focus.score)}">
+        <div class="hero-label">${heroLabel} → <strong>${hTop.z.name}</strong><span class="hero-at">${hTop.at}</span></div>
+        <div class="hero-score"><span class="hero-word">${scoreWord(hTop.focus.score)}</span><span class="num" title="${SCORE_TIP}">${hTop.focus.score.toFixed(1)}</span></div>
+        <div class="hero-reason">${reason(hTop.z, hTop.focus.sw, hTop.focus.windWord)}</div>
         ${stormWindow(top)}
-        <div class="hero-access">📍 ${top.access}</div>
-        <div class="runners">${ranked.slice(1, 3).map(z =>
-          `<span class="runner"><b>${z.now.score.toFixed(1)}</b> ${z.name}</span>`).join("")}</div>
+        <div class="hero-access">📍 ${hTop.z.access}</div>
+        <div class="runners">${heroRanked.slice(1, 3).map(r =>
+          `<span class="runner"><b title="${SCORE_TIP}">${r.focus.score.toFixed(1)}</b> ${r.z.name}</span>`).join("")}</div>
       </section>`;
 
     const bwHTML = bw ? `
@@ -456,7 +494,7 @@
       return `
       <div class="zone card${isPinned ? " pinned" : ""}" data-id="${z.id}">
         <div class="zone-head">
-          <span class="chip ${scoreClass(z.now.score)}">${z.now.score.toFixed(1)}</span>
+          <span class="chip ${scoreClass(z.now.score)}" title="score = where conditions line up — not bar truth">${z.now.score.toFixed(1)}</span>
           <span class="zone-name">${z.name}</span>
           <span class="zone-wind ${windClass(z.now.windWord)}" title="${z.now.windWord} at this beach">
             <span class="wind-arrow" style="transform:rotate(${Math.round(z.now.sw.windD) + 180}deg)">↑</span>
@@ -490,14 +528,29 @@
       <button class="tab${activeTab === "out" ? " active" : ""}" data-tab="out">8-Day</button>
     </nav>`;
 
-    const nowView = stormCardHTML(storms, stormTest) + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
+    const reportsHTML = `
+      <section class="reports card">
+        <div class="tide-title">Local reports <span class="muted">— the humans who can see the bars</span></div>
+        <div class="report-links">
+          <a href="https://www.surfintheeye.com" target="_blank" rel="noopener">Natural Art daily (Buxton)</a>
+          <a href="tel:+12522617952">WRV surf line ☎</a>
+          <a href="https://shorelineobx.com/blog/obx-surf-report/" target="_blank" rel="noopener">Shoreline OBX report</a>
+          <a href="https://outerbanksthisweek.com/surf-reports" target="_blank" rel="noopener">OBX This Week reports</a>
+          <a href="https://www.surfchex.com" target="_blank" rel="noopener">SurfChex cams</a>
+        </div>
+        <div class="buoy-caption">Check them — they're the ground truth on what the sand is doing.</div>
+      </section>`;
+
+    const stormCard = stormCardHTML(storms, stormTest);
+    const nowView = stormCard + buoyHTML(buoys, !!stormCard) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
       <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing <i class="cell s0 stormy"></i>⛈</span></div>` +
-      rows + goldenHTML(daily) + dailyHTML(daily) + tideHTML + stormQuietHTML(storms, stormTest);
+      rows + dailyHTML(daily) + tideHTML + reportsHTML + goldenHTML(daily) + stormQuietHTML(storms, stormTest);
 
     app.innerHTML = heroHTML + tabsHTML +
       `<div class="view" id="view-now"${activeTab === "now" ? "" : " hidden"}>${nowView}</div>` +
       `<div class="view" id="view-out"${activeTab === "out" ? "" : " hidden"}>${outlookHTML(model, daily, tide)}</div>` + `
-      <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · times ET · scores don't know today's sandbars — report back and make it smarter. v0.1, built somewhere over Tennessee. Easy does it.</footer>`;
+      <footer>Data: Open-Meteo (NOAA WW3/GFS) · NOAA CO-OPS · NHC · times ET · scores don't know today's sandbars — <a href="https://github.com/vaultboyxl/capecast/issues/new" target="_blank" rel="noopener">report what the bars did →</a> Built somewhere over Tennessee. Easy does it.</footer>`;
+      // TODO: swap the footer report link for the feedback form URL (gate H3)
 
     app.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
       activeTab = b.dataset.tab;

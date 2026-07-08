@@ -67,18 +67,19 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .hero > * { position: relative; }
 .hero-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; }
 .hero-label strong { color: var(--text); font-family: var(--display); font-size: 16px; letter-spacing: 0; text-transform: none; }
-.hero-score {
-  font-family: var(--display); font-size: 66px; font-weight: 800; line-height: 1.05;
-  letter-spacing: -0.03em; display: flex; align-items: baseline; gap: 12px; margin-top: 2px;
+/* The verdict word leads; the number is the receipt-pending footnote (v2 anti-feature #3). */
+.hero-score { display: flex; align-items: baseline; gap: 12px; margin-top: 2px; }
+.hero-word {
+  font-family: var(--display); font-size: 46px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.01em; text-transform: uppercase;
+  background: linear-gradient(150deg, var(--text), var(--muted)); -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.hero-score .num { background: linear-gradient(150deg, var(--text), var(--muted)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.hero.s8 .num { background-image: linear-gradient(150deg, #8ceed6, var(--s8)); }
-.hero.s6 .num { background-image: linear-gradient(150deg, #7fd8a8, var(--s6)); }
-.hero.s4 .num { background-image: linear-gradient(150deg, #e6c05e, var(--s4)); }
-.hero.s2 .num { background-image: linear-gradient(150deg, #c9a05e, var(--s2)); }
-.hero-word { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.16em; }
-.hero.s8 .hero-word { color: var(--s8); } .hero.s6 .hero-word { color: var(--s6); }
-.hero.s4 .hero-word { color: var(--s4); } .hero.s2 .hero-word { color: var(--s2); }
+.hero.s8 .hero-word { background-image: linear-gradient(150deg, #8ceed6, var(--s8)); }
+.hero.s6 .hero-word { background-image: linear-gradient(150deg, #7fd8a8, var(--s6)); }
+.hero.s4 .hero-word { background-image: linear-gradient(150deg, #e6c05e, var(--s4)); }
+.hero.s2 .hero-word { background-image: linear-gradient(150deg, #c9a05e, var(--s2)); }
+.hero-score .num { font-size: 17px; font-weight: 700; color: var(--muted); cursor: help; }
+.hero-at { color: var(--muted); font-size: 12px; letter-spacing: 0; text-transform: none; }
 .hero-reason { margin-top: 6px; font-size: 15.5px; }
 .hero-access { color: var(--muted); font-size: 13px; margin-top: 7px; }
 .runners { display: flex; gap: 16px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
@@ -236,6 +237,19 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .o-sub .wow { font-size: 11.5px; padding: 1.5px 8px; }
 .o-row.day-storm { border-radius: 10px; border-top-color: transparent; }
 .o-note { color: var(--muted); font-size: 11.5px; padding-top: 10px; opacity: 0.85; }
+.o-day-block.o-far { opacity: 0.55; } /* days 6–8: trend only */
+
+/* ---------- local reports hub ---------- */
+.reports { padding: 13px 17px; }
+.report-links { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 9px; }
+.report-links a {
+  color: var(--accent); text-decoration: none; font-size: 13px;
+  border: 1px solid rgba(69, 201, 171, 0.3); border-radius: 99px; padding: 5px 12px;
+}
+.report-links a:active { background: rgba(69, 201, 171, 0.12); }
+
+.buoy-arrival { font-size: 12.5px; color: var(--accent); }
+.buoy-arrival b { color: var(--accent); }
 .pin {
   background: none; border: 0; cursor: pointer; padding: 2px 2px 2px 6px;
   font-size: 17px; line-height: 1; color: var(--muted); opacity: 0.6;

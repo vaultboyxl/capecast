@@ -1,3 +1,9 @@
+// SPOT-NAMING POLICY (the sacred rule): zone-level display ONLY. Zones and famous
+// public landmarks that the local reports themselves name (Jennette's, S-Turns, the
+// old lighthouse) are in-bounds. Anything below that granularity — a bar, a peak, an
+// unmarked access — never enters this file, the copy, or the code. One "this app blew
+// up my spot" thread in the OBX groups ends the venture. When in doubt, leave it out.
+//
 // CapeCast zone definitions — the Outer Banks, Corolla to Ocracoke.
 // `facing` = true azimuth the beach faces (pointing out to sea).
 // This is the whole trick: the coast bends ~110° around Cape Hatteras,

@@ -1,8 +1,8 @@
 // CapeCast service worker: cache-first shell, network-first data with offline fallback
 // (so the last forecast still shows in the lineup with no signal).
-const SHELL = "capecast-shell-v19";
+const SHELL = "capecast-shell-v20";
 const DATA = "capecast-data-v1";
-const SHELL_FILES = ["./", "./index.html", "./style.css?v=19", "./app.js?v=19", "./zones.js?v=19", "./icon.svg", "./icon-192.png", "./manifest.webmanifest"];
+const SHELL_FILES = ["./", "./index.html", "./style.css?v=20", "./app.js?v=20", "./zones.js?v=20", "./icon.svg", "./icon-192.png", "./manifest.webmanifest"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
