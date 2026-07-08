@@ -1,0 +1,59 @@
+{
+  "_comment": "Archived-storm test fixture in NHC CurrentStorms.json format: Hurricane Erin, ~2025-08-20, Cat 2 east of the Bahamas curving north between Bermuda and the East Coast — the swell event the roadmap says to test against BEFORE the next real system. Includes a Pacific storm to verify basin filtering.",
+  "activeStorms": [
+    {
+      "id": "al052025",
+      "binNumber": "AT5",
+      "name": "Erin",
+      "classification": "HU",
+      "intensity": "90",
+      "pressure": "952",
+      "latitude": "31.5N",
+      "longitude": "73.5W",
+      "latitudeNumeric": 31.5,
+      "longitudeNumeric": -73.5,
+      "movementDir": 360,
+      "movementSpeed": 13,
+      "lastUpdate": "2025-08-20T15:00:00.000Z",
+      "publicAdvisory": {
+        "advNum": "036",
+        "issuance": "2025-08-20T15:00:00.000Z",
+        "fileUpdateTime": "2025-08-20T14:55:00.000Z",
+        "url": "https://www.nhc.noaa.gov/text/MIATCPAT5.shtml"
+      },
+      "forecastAdvisory": {
+        "advNum": "036",
+        "issuance": "2025-08-20T15:00:00.000Z",
+        "fileUpdateTime": "2025-08-20T14:55:00.000Z",
+        "url": "https://www.nhc.noaa.gov/text/MIATCMAT5.shtml"
+      },
+      "forecastGraphics": {
+        "advNum": "036",
+        "issuance": "2025-08-20T15:00:00.000Z",
+        "fileUpdateTime": "2025-08-20T14:55:00.000Z",
+        "url": "https://www.nhc.noaa.gov/graphics_at5.shtml"
+      }
+    },
+    {
+      "id": "ep092025",
+      "binNumber": "EP1",
+      "name": "Juliette",
+      "classification": "TS",
+      "intensity": "45",
+      "pressure": "1000",
+      "latitude": "17.9N",
+      "longitude": "112.4W",
+      "latitudeNumeric": 17.9,
+      "longitudeNumeric": -112.4,
+      "movementDir": 290,
+      "movementSpeed": 10,
+      "lastUpdate": "2025-08-20T15:00:00.000Z",
+      "publicAdvisory": {
+        "advNum": "008",
+        "issuance": "2025-08-20T15:00:00.000Z",
+        "fileUpdateTime": "2025-08-20T14:55:00.000Z",
+        "url": "https://www.nhc.noaa.gov/text/MIATCPEP1.shtml"
+      }
+    }
+  ]
+}

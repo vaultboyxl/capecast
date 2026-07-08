@@ -1,0 +1,21 @@
+{
+ "updated": "2026-07-08T01:57Z",
+ "storms": [
+  {
+   "id": "al052025",
+   "name": "Erin",
+   "class": "HU",
+   "cat": 2,
+   "intensity_kt": 90,
+   "pressure_mb": 952,
+   "lat": 31.5,
+   "lon": -73.5,
+   "movement_dir": 360,
+   "movement_speed_kt": 13,
+   "advisory_num": "036",
+   "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT5.shtml",
+   "graphics_url": "https://www.nhc.noaa.gov/graphics_at5.shtml",
+   "last_update": "2025-08-20T15:00:00.000Z"
+  }
+ ]
+}

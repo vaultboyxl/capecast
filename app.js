@@ -100,7 +100,11 @@
       fetch("./buoys.json").then(r => r.json()).catch(() => null),
       fetch(dailyURL).then(r => r.json()).catch(() => null),
     ]);
-    return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide, buoys, daily };
+    // ?stormtest=1 loads the archived Erin fixture so hurricane mode is debugged
+    // before a real system, per the roadmap.
+    const stormSrc = new URLSearchParams(location.search).has("stormtest") ? "./fixtures/storms_test.json" : "./storms.json";
+    const storms = await fetch(stormSrc).then(r => r.json()).catch(() => null);
+    return { marine: Array.isArray(marine) ? marine : [marine], wind: Array.isArray(wind) ? wind : [wind], tide, buoys, daily, storms };
   }
 
   function buildModel({ marine, wind }) {
@@ -173,6 +177,57 @@
       ? `<div class="buoy-divider"><span>upstream · swell here arrives ~18–24h later</span></div>${upstream.join("")}`
       : "";
     return `<section class="buoys card"><div class="buoy-head"><span class="buoy-tag">Live buoys</span></div>${local.join("")}${upBlock}<div class="buoy-caption">model vs buoy = today's forecast checked against what the ocean is actually doing. When they disagree, trust the buoy.</div></section>`;
+  }
+
+  // ---------- hurricane mode ----------
+  // The track, cone, and intensity are NHC's product — CapeCast only translates a
+  // position to the Banks: which side of the cape gets the swell, and roughly when.
+  // Hidden entirely if storms.json is stale (>3h): stale storm info is worse than none.
+  const CAPE = { lat: 35.25, lon: -75.52 };
+  const STORM_CLASS = { HU: "Hurricane", TS: "Tropical Storm", TD: "Tropical Depression", STS: "Subtropical Storm", STD: "Subtropical Depression", PTC: "Post-Tropical Cyclone", PC: "Potential Tropical Cyclone" };
+  const deg = r => r * 180 / Math.PI;
+  function stormGeo(s) { // distance (nm) + bearing from Cape Hatteras to the storm
+    const R = 3440, dLat = rad(s.lat - CAPE.lat), dLon = rad(s.lon - CAPE.lon);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(CAPE.lat)) * Math.cos(rad(s.lat)) * Math.sin(dLon / 2) ** 2;
+    const brg = (deg(Math.atan2(Math.sin(dLon) * Math.cos(rad(s.lat)),
+      Math.cos(rad(CAPE.lat)) * Math.sin(rad(s.lat)) - Math.sin(rad(CAPE.lat)) * Math.cos(rad(s.lat)) * Math.cos(dLon))) + 360) % 360;
+    return { dist: Math.round(2 * R * Math.asin(Math.sqrt(a))), brg: Math.round(brg) };
+  }
+  const etaWhen = h => new Date(Date.now() + h * 36e5)
+    .toLocaleString("en-US", { weekday: "short", hour: "numeric", timeZone: "America/New_York" });
+  function stormCardHTML(storms, isTest) {
+    if (!storms || !storms.storms || !storms.storms.length) return "";
+    const ageH = (Date.now() - new Date(storms.updated)) / 36e5;
+    if (!isTest && (isNaN(ageH) || ageH > 3)) return "";
+    return storms.storms.map(s => {
+      const { dist, brg } = stormGeo(s);
+      const title = `${STORM_CLASS[s.class] || s.class} ${s.name}${s.cat ? ` (Cat ${s.cat})` : ""}`;
+      const where = `${dist} nm ${compass(brg)} of the cape, moving ${compass(s.movement_dir)} ${s.movement_speed_kt}kt`;
+      // Zone lean: swell radiates from the storm, so it arrives at the Banks FROM
+      // the storm's bearing — zones facing within ~65° of that are the exposed side.
+      const exposed = ZONES.filter(z => angDiff(z.facing, brg) < 65).map(z => z.name.split(" · ")[0].split(" / ")[0]);
+      const lean = exposed.length
+        ? `Swell side of the cape: <b>${exposed.slice(0, 5).join(", ")}${exposed.length > 5 ? "…" : ""}</b> (swell arriving from the ${compass(brg)})`
+        : `No OBX-facing swell window from this position yet`;
+      // Group speed ≈ 1.5×period kt; 12–15s storm swell → ~18–22.5kt over the distance.
+      const eta = dist > 120
+        ? `First long-period pulse: <b>~${etaWhen(dist / 22.5)} – ${etaWhen(dist / 18)}</b> <span class="storm-dim">(${dist} nm at 12–15s swell group speed — a range, not a promise)</span>`
+        : `System is at the coast — follow NHC/NWS official guidance for safety.`;
+      const link = s.graphics_url || s.advisory_url;
+      return `<section class="storm card">
+        <div class="storm-head"><span class="storm-tag">🌀 Tropics</span><b>${title}</b>${isTest ? `<span class="storm-test">FIXTURE — Erin 2025</span>` : ""}</div>
+        <div class="storm-line">${where}${s.advisory_num ? ` · <a href="${link}" target="_blank" rel="noopener">NHC advisory #${+s.advisory_num} — track & cone →</a>` : ""}</div>
+        <div class="storm-line">${lean}</div>
+        <div class="storm-line">${eta}</div>
+        <div class="storm-caption">Track and intensity are NHC's — CapeCast only translates what the position means for which side of the cape.</div>
+      </section>`;
+    }).join("");
+  }
+  function stormQuietHTML(storms, isTest) {
+    if (isTest || !storms || !storms.updated || (storms.storms && storms.storms.length)) return "";
+    const ageH = (Date.now() - new Date(storms.updated)) / 36e5;
+    if (isNaN(ageH) || ageH > 3) return "";
+    return `<div class="storm-clear">🌀 tropics: all clear <span>(NHC, checked hourly)</span></div>`;
   }
 
   // ---------- golden hour wow factor ----------
@@ -328,7 +383,8 @@
 
   // ---------- render ----------
   let activeTab = "now";
-  function render(model, tide, buoys, daily) {
+  function render(model, tide, buoys, daily, storms) {
+    const stormTest = new URLSearchParams(location.search).has("stormtest");
     const app = $("#app");
     const ranked = [...model.zones].sort((a, b) => b.now.score - a.now.score);
     const top = ranked[0], bw = bestWindow(model);
@@ -434,9 +490,9 @@
       <button class="tab${activeTab === "out" ? " active" : ""}" data-tab="out">8-Day</button>
     </nav>`;
 
-    const nowView = buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
+    const nowView = stormCardHTML(storms, stormTest) + buoyHTML(buoys) + bwHTML + `<div class="strip-legend"><span>next 48h, 5am–8pm ET</span>
       <span class="legend"><i class="cell s0"></i>flat <i class="cell s2"></i>junk <i class="cell s4"></i>surfable <i class="cell s6"></i>good <i class="cell s8"></i>firing <i class="cell s0 stormy"></i>⛈</span></div>` +
-      rows + goldenHTML(daily) + dailyHTML(daily) + tideHTML;
+      rows + goldenHTML(daily) + dailyHTML(daily) + tideHTML + stormQuietHTML(storms, stormTest);
 
     app.innerHTML = heroHTML + tabsHTML +
       `<div class="view" id="view-now"${activeTab === "now" ? "" : " hidden"}>${nowView}</div>` +
@@ -455,7 +511,7 @@
     app.querySelectorAll(".pin").forEach(b => b.addEventListener("click", e => {
       e.stopPropagation();
       togglePin(b.dataset.pin);
-      render(model, tide, buoys, daily);
+      render(model, tide, buoys, daily, storms);
     }));
     $("#updated").textContent = "updated " + new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) + " ET";
   }
@@ -463,7 +519,7 @@
   async function main() {
     try {
       const data = await fetchAll();
-      render(buildModel(data), data.tide, data.buoys, data.daily);
+      render(buildModel(data), data.tide, data.buoys, data.daily, data.storms);
     } catch (e) {
       $("#app").innerHTML = `<section class="card error">Couldn't reach the forecast feeds (${e.message}). If you're offline, reconnect and pull to refresh.</section>`;
     }

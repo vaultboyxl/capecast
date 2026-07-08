@@ -84,6 +84,24 @@ main > *:nth-child(n+7) { animation-delay: 0.30s; }
 .runners { display: flex; gap: 16px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
 .runner b { color: var(--text); font-family: var(--display); }
 
+/* ---------- hurricane mode ---------- */
+.storm { display: flex; flex-direction: column; gap: 7px; padding: 13px 17px; font-size: 13.5px; border: 1px solid rgba(240, 138, 93, 0.35); }
+.storm-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 15px; }
+.storm-head b { font-family: var(--display); }
+.storm-tag {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
+  color: #f08a5d; border: 1px solid rgba(240, 138, 93, 0.45); border-radius: 99px; padding: 2.5px 9px;
+  box-shadow: 0 0 10px rgba(240, 138, 93, 0.12) inset;
+}
+.storm-test { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border: 1px dashed var(--line); border-radius: 4px; padding: 2px 6px; }
+.storm-line { color: var(--muted); }
+.storm-line b { color: var(--text); }
+.storm-line a { color: #f08a5d; text-decoration: none; }
+.storm-dim { font-size: 11.5px; opacity: 0.75; }
+.storm-caption { font-size: 11.5px; color: var(--muted); opacity: 0.7; }
+.storm-clear { margin: 4px 2px 0; font-size: 12px; color: var(--muted); opacity: 0.75; }
+.storm-clear span { opacity: 0.8; }
+
 /* ---------- live buoys ---------- */
 .buoys { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); padding: 11px 17px; }
 .buoy-tag {

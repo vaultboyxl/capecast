@@ -1,0 +1,26 @@
+name: storms
+on:
+  schedule:
+    - cron: "7 * * * *"   # hourly; NHC advisories are 6-hourly (+3h intermediates)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: buoys   # shared with buoys.yml/calibrate.yml so pushes never race
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch NHC active storms
+        run: node scripts/fetch_storms.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "capecast-buoy-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add storms.json
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "storms: $(date -u +%H:%MZ)"
+          git pull --rebase origin main
+          git push
