@@ -1,0 +1,34 @@
+name: calibrate
+on:
+  schedule:
+    # 04:15 UTC = 00:15 ET in summer. After DST ends (Nov) this is 23:15 ET the
+    # prior evening; the log lands under that ET date and forecast_for stays D+1.
+    - cron: "15 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: buoys   # shared with buoys.yml so pushes never race
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Daily calibration snapshot (skip if today's log exists)
+        run: |
+          TODAY=$(TZ=America/New_York date +%F)
+          if [ -f "data/log/$TODAY.json" ]; then
+            echo "snapshot for $TODAY already exists — skipping"
+          else
+            node scripts/fetch_buoys.mjs --snapshot
+          fi
+      - name: Commit if changed
+        run: |
+          git config user.name "capecast-buoy-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add buoys.json data/
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "calibrate: $(TZ=America/New_York date +%F)"
+          git pull --rebase origin main
+          git push

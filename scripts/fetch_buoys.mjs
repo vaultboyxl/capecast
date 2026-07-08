@@ -8,6 +8,7 @@ const STATIONS = {
 };
 const M2FT = 3.28084, MS2KT = 1.94384;
 const MAX_AGE_H = 6;
+const RECENT = {}; // station id -> trailing-24h hourly obs, kept for calibration snapshots
 
 async function fetchStation(id) {
   const res = await fetch(`https://www.ndbc.noaa.gov/data/realtime2/${id}.txt`, {
@@ -23,6 +24,24 @@ async function fetchStation(id) {
     r.time = Date.UTC(+r.YY, +r.MM - 1, +r.DD, +r.hh, +r.mm);
     return r;
   });
+  // Trailing 24h, thinned to one row per hour (rows are newest-first).
+  const hourly = [], seenHour = new Set();
+  for (const r of rows) {
+    if ((Date.now() - r.time) / 36e5 > 24) break;
+    const hour = new Date(r.time).toISOString().slice(0, 13);
+    if (seenHour.has(hour)) continue;
+    seenHour.add(hour);
+    const num = (f) => (r[f] !== "MM" && r[f] !== undefined ? +r[f] : null);
+    hourly.push({
+      t: new Date(r.time).toISOString().slice(0, 16) + "Z",
+      wvht_ft: num("WVHT") != null ? +(num("WVHT") * M2FT).toFixed(1) : null,
+      dpd_s: num("DPD"),
+      mwd_deg: num("MWD"),
+      wspd_kt: num("WSPD") != null ? Math.round(num("WSPD") * MS2KT) : null,
+      wdir_deg: num("WDIR"),
+    });
+  }
+  RECENT[id] = hourly;
   const newest = (field) => {
     for (const r of rows) {
       if (r[field] !== "MM" && r[field] !== undefined) {
@@ -56,13 +75,51 @@ writeFileSync("buoys.json", JSON.stringify(out, null, 1));
 console.log("buoys.json written:", JSON.stringify(out.stations));
 
 if (process.argv.includes("--snapshot")) {
-  // Daily calibration log: inputs only (scores are deterministic from these, recomputable offline).
-  const lats = "36.36,36.16,36.02,35.90,35.82,35.70,35.58,35.34,35.24,35.17,35.16,35.06";
-  const lons = "-75.77,-75.72,-75.64,-75.56,-75.52,-75.45,-75.43,-75.46,-75.48,-75.60,-75.69,-75.95";
-  const marine = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=1&timezone=America%2FNew_York`).then(r => r.json());
-  const wind = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m&forecast_days=1&wind_speed_unit=kn&timezone=America%2FNew_York`).then(r => r.json());
+  // Daily calibration log: what the model says about TOMORROW (24h+ lead), stored so the
+  // scorecard can later compare it against what the buoys actually observed. Sampled at the
+  // 12 zone points AND at the buoy coordinates (only there does model-vs-truth join cleanly).
+  const ZONE_PTS = [
+    [36.36, -75.77], [36.16, -75.72], [36.02, -75.64], [35.90, -75.56],
+    [35.82, -75.52], [35.70, -75.45], [35.58, -75.43], [35.34, -75.46],
+    [35.24, -75.48], [35.17, -75.60], [35.16, -75.69], [35.06, -75.95],
+  ];
+  const BUOY_PTS = { // NDBC station_table.txt positions
+    "41001": [34.791, -72.420], // E Hatteras (upstream)
+    "41002": [31.743, -74.955], // S Hatteras (upstream)
+    "41025": [35.026, -75.380], // Diamond Shoals
+    "44100": [36.257, -75.593], // Duck waverider
+  };
+  // Dates in ET (the forecast API's timezone) so a run at any hour stays coherent.
+  const day = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+  const [y, m, d] = day.split("-").map(Number);
+  const forecastFor = new Date(Date.UTC(y, m - 1, d + 1, 12)).toISOString().slice(0, 10);
+  const fetchForecast = async (pts) => {
+    const lats = pts.map((p) => p[0]).join(","), lons = pts.map((p) => p[1]).join(",");
+    const marine = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=2&timezone=America%2FNew_York`).then((r) => r.json());
+    const wind = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m&forecast_days=2&wind_speed_unit=kn&timezone=America%2FNew_York`).then((r) => r.json());
+    const arr = (x) => (Array.isArray(x) ? x : [x]);
+    const tomorrowOnly = (loc) => { // keep just the 24 hours dated forecastFor
+      const keep = loc.hourly.time.map((t, i) => (t.startsWith(forecastFor) ? i : -1)).filter((i) => i >= 0);
+      const h = {};
+      for (const k of Object.keys(loc.hourly)) h[k] = keep.map((i) => loc.hourly[k][i]);
+      return h;
+    };
+    return arr(marine).map((mloc, i) => ({ marine: tomorrowOnly(mloc), wind: tomorrowOnly(arr(wind)[i]) }));
+  };
+  const zonesFc = await fetchForecast(ZONE_PTS);
+  const buoysFcArr = await fetchForecast(Object.values(BUOY_PTS));
+  const buoysFc = {};
+  Object.keys(BUOY_PTS).forEach((id, i) => {
+    buoysFc[id] = { lat: BUOY_PTS[id][0], lon: BUOY_PTS[id][1], ...buoysFcArr[i] };
+  });
   mkdirSync("data/log", { recursive: true });
-  const day = new Date().toISOString().slice(0, 10);
-  writeFileSync(`data/log/${day}.json`, JSON.stringify({ day, buoys: out, marine, wind }));
-  console.log(`snapshot written: data/log/${day}.json`);
+  writeFileSync(`data/log/${day}.json`, JSON.stringify({
+    day,
+    forecast_for: forecastFor,
+    observed: out,            // buoy summary at snapshot time
+    observed_hourly: RECENT,  // trailing 24h per station — yesterday's truth for scoring
+    zones: { points: ZONE_PTS, forecast: zonesFc },
+    buoys_forecast: buoysFc,
+  }));
+  console.log(`snapshot written: data/log/${day}.json (forecast_for ${forecastFor})`);
 }
