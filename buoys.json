@@ -1,5 +1,5 @@
 {
- "updated": "2026-07-11T06:25Z",
+ "updated": "2026-07-11T06:35Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -34,7 +34,7 @@
    "wdir_deg": 250,
    "wtmp_f": 83,
    "obs_time": "2026-07-11T05:50Z",
-   "model_wvht_ft": 4.8
+   "model_wvht_ft": 4.9
   },
   "44100": {
    "name": "Duck (waverider)",
