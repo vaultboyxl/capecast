@@ -1,51 +1,51 @@
 {
- "updated": "2026-07-14T16:13Z",
+ "updated": "2026-07-14T17:40Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
    "upstream": true,
-   "wvht_ft": 3.6,
-   "dpd_s": 8,
-   "mwd_deg": 93,
+   "wvht_ft": 3.3,
+   "dpd_s": 9,
+   "mwd_deg": 122,
    "wspd_kt": 10,
-   "wdir_deg": 80,
+   "wdir_deg": 90,
    "wtmp_f": 80,
-   "obs_time": "2026-07-14T15:20Z",
-   "model_wvht_ft": 3.7
+   "obs_time": "2026-07-14T16:50Z",
+   "model_wvht_ft": 3.6
   },
   "41002": {
    "name": "S Hatteras",
    "upstream": true,
-   "wvht_ft": 4.6,
+   "wvht_ft": 4.3,
    "dpd_s": 8,
-   "mwd_deg": 63,
+   "mwd_deg": 80,
    "wspd_kt": 10,
-   "wdir_deg": 220,
+   "wdir_deg": 240,
    "wtmp_f": 85,
-   "obs_time": "2026-07-14T15:20Z",
+   "obs_time": "2026-07-14T16:50Z",
    "model_wvht_ft": 3.7
   },
   "41025": {
    "name": "Diamond Shoals",
-   "wvht_ft": 4.3,
-   "dpd_s": 8,
-   "mwd_deg": 95,
+   "wvht_ft": 4.6,
+   "dpd_s": 7,
+   "mwd_deg": 83,
    "wspd_kt": 16,
    "wdir_deg": 60,
    "wtmp_f": 83,
-   "obs_time": "2026-07-14T15:20Z",
-   "model_wvht_ft": 4.6
+   "obs_time": "2026-07-14T16:50Z",
+   "model_wvht_ft": 4.4
   },
   "44100": {
    "name": "Duck (waverider)",
    "wvht_ft": 3.6,
-   "dpd_s": 7,
-   "mwd_deg": 91,
+   "dpd_s": 8,
+   "mwd_deg": 109,
    "wspd_kt": null,
    "wdir_deg": null,
    "wtmp_f": 79,
-   "obs_time": "2026-07-14T15:30Z",
-   "model_wvht_ft": 2.7
+   "obs_time": "2026-07-14T17:00Z",
+   "model_wvht_ft": 2.6
   }
  }
 }
