@@ -1,21 +1,21 @@
 {
- "updated": "2026-07-22T03:37Z",
+ "updated": "2026-07-22T06:39Z",
  "storms": [
   {
    "id": "al022026",
    "name": "Bertha",
    "class": "TS",
    "cat": null,
-   "intensity_kt": 50,
-   "pressure_mb": 995,
-   "lat": 29.4,
-   "lon": -87.7,
+   "intensity_kt": 45,
+   "pressure_mb": 998,
+   "lat": 29.3,
+   "lon": -87.9,
    "movement_dir": 270,
    "movement_speed_kt": 6,
-   "advisory_num": "011",
+   "advisory_num": "011a",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT2.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at2.shtml",
-   "last_update": "2026-07-22T03:00:00.000Z"
+   "last_update": "2026-07-22T06:00:00.000Z"
   }
  ]
 }
