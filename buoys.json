@@ -1,5 +1,5 @@
 {
- "updated": "2026-07-31T01:04Z",
+ "updated": "2026-07-31T04:58Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -11,40 +11,40 @@
    "wdir_deg": null,
    "wtmp_f": null,
    "obs_time": null,
-   "model_wvht_ft": 6.2
+   "model_wvht_ft": 5.8
   },
   "41002": {
    "name": "S Hatteras",
    "upstream": true,
    "wvht_ft": 7.5,
    "dpd_s": 8,
-   "mwd_deg": 205,
-   "wspd_kt": 19,
-   "wdir_deg": 190,
+   "mwd_deg": 210,
+   "wspd_kt": 21,
+   "wdir_deg": 220,
    "wtmp_f": 84,
-   "obs_time": "2026-07-31T00:20Z",
-   "model_wvht_ft": 5.4
+   "obs_time": "2026-07-31T04:20Z",
+   "model_wvht_ft": 5.3
   },
   "41025": {
    "name": "Diamond Shoals",
-   "wvht_ft": 3,
-   "dpd_s": 8,
-   "mwd_deg": 163,
+   "wvht_ft": 2.6,
+   "dpd_s": 9,
+   "mwd_deg": 148,
    "wspd_kt": 4,
-   "wdir_deg": 80,
+   "wdir_deg": 150,
    "wtmp_f": 85,
-   "obs_time": "2026-07-31T00:20Z",
-   "model_wvht_ft": 3.1
+   "obs_time": "2026-07-31T04:20Z",
+   "model_wvht_ft": 3
   },
   "44100": {
    "name": "Duck (waverider)",
-   "wvht_ft": 2.3,
-   "dpd_s": 8,
-   "mwd_deg": 129,
+   "wvht_ft": 2,
+   "dpd_s": 9,
+   "mwd_deg": 130,
    "wspd_kt": null,
    "wdir_deg": null,
-   "wtmp_f": 78,
-   "obs_time": "2026-07-31T00:30Z",
+   "wtmp_f": 77,
+   "obs_time": "2026-07-31T04:30Z",
    "model_wvht_ft": 1.6
   }
  }
