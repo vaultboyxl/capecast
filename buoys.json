@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-02T06:17Z",
+ "updated": "2026-08-02T06:44Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -11,7 +11,7 @@
    "wdir_deg": null,
    "wtmp_f": null,
    "obs_time": null,
-   "model_wvht_ft": 4.2
+   "model_wvht_ft": 4.3
   },
   "41002": {
    "name": "S Hatteras",
