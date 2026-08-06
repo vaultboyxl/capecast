@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-06T06:28Z",
+ "updated": "2026-08-06T06:44Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -27,13 +27,13 @@
   },
   "41025": {
    "name": "Diamond Shoals",
-   "wvht_ft": 3.3,
+   "wvht_ft": 3,
    "dpd_s": 8,
-   "mwd_deg": 132,
-   "wspd_kt": 16,
-   "wdir_deg": 220,
+   "mwd_deg": 177,
+   "wspd_kt": 14,
+   "wdir_deg": 200,
    "wtmp_f": 84,
-   "obs_time": "2026-08-06T05:50Z",
+   "obs_time": "2026-08-06T06:10Z",
    "model_wvht_ft": 3.5
   },
   "44100": {
@@ -45,7 +45,7 @@
    "wdir_deg": null,
    "wtmp_f": 77,
    "obs_time": "2026-08-06T06:00Z",
-   "model_wvht_ft": 2.2
+   "model_wvht_ft": 2.1
   }
  }
 }
