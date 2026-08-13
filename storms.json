@@ -1,21 +1,4 @@
 {
- "updated": "2026-08-13T22:56Z",
- "storms": [
-  {
-   "id": "al032026",
-   "name": "Cristobal",
-   "class": "PTC",
-   "cat": null,
-   "intensity_kt": 25,
-   "pressure_mb": 1018,
-   "lat": 39.4,
-   "lon": -36.8,
-   "movement_dir": 55,
-   "movement_speed_kt": 16,
-   "advisory_num": "005",
-   "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT3.shtml",
-   "graphics_url": "https://www.nhc.noaa.gov/graphics_at3.shtml",
-   "last_update": "2026-08-13T15:00:00.000Z"
-  }
- ]
+ "updated": "2026-08-13T23:52Z",
+ "storms": []
 }
