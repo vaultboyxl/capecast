@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-15T21:19Z",
+ "updated": "2026-08-15T21:44Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -7,22 +7,22 @@
    "wvht_ft": 4.3,
    "dpd_s": 7,
    "mwd_deg": 231,
-   "wspd_kt": 4,
-   "wdir_deg": 310,
+   "wspd_kt": 0,
+   "wdir_deg": 300,
    "wtmp_f": 83,
-   "obs_time": "2026-08-15T20:40Z",
+   "obs_time": "2026-08-15T20:50Z",
    "model_wvht_ft": 3.7
   },
   "41002": {
    "name": "S Hatteras",
    "upstream": true,
    "wvht_ft": 3.6,
-   "dpd_s": 6,
+   "dpd_s": 5,
    "mwd_deg": 245,
-   "wspd_kt": 12,
-   "wdir_deg": 260,
+   "wspd_kt": 14,
+   "wdir_deg": 250,
    "wtmp_f": 85,
-   "obs_time": "2026-08-15T20:40Z",
+   "obs_time": "2026-08-15T20:50Z",
    "model_wvht_ft": 3.3
   },
   "41025": {
@@ -43,8 +43,8 @@
    "mwd_deg": 50,
    "wspd_kt": null,
    "wdir_deg": null,
-   "wtmp_f": 83,
-   "obs_time": "2026-08-15T20:30Z",
+   "wtmp_f": 82,
+   "obs_time": "2026-08-15T21:00Z",
    "model_wvht_ft": 1.9
   }
  }
