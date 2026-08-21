@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-21T21:22Z",
+ "updated": "2026-08-21T21:48Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -16,13 +16,13 @@
   "41002": {
    "name": "S Hatteras",
    "upstream": true,
-   "wvht_ft": 2,
+   "wvht_ft": 2.3,
    "dpd_s": 9,
-   "mwd_deg": 96,
+   "mwd_deg": 119,
    "wspd_kt": 8,
-   "wdir_deg": 190,
+   "wdir_deg": 180,
    "wtmp_f": 87,
-   "obs_time": "2026-08-21T20:50Z",
+   "obs_time": "2026-08-21T21:10Z",
    "model_wvht_ft": 2.8
   },
   "41025": {
@@ -33,18 +33,18 @@
    "wspd_kt": 10,
    "wdir_deg": 20,
    "wtmp_f": 87,
-   "obs_time": "2026-08-21T20:50Z",
+   "obs_time": "2026-08-21T21:10Z",
    "model_wvht_ft": 2.4
   },
   "44100": {
    "name": "Duck (waverider)",
    "wvht_ft": 2.6,
-   "dpd_s": 4,
-   "mwd_deg": 9,
+   "dpd_s": 5,
+   "mwd_deg": 16,
    "wspd_kt": null,
    "wdir_deg": null,
    "wtmp_f": 82,
-   "obs_time": "2026-08-21T20:30Z",
+   "obs_time": "2026-08-21T21:00Z",
    "model_wvht_ft": 2
   }
  }
