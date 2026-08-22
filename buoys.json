@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-22T04:31Z",
+ "updated": "2026-08-22T04:48Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -29,12 +29,12 @@
    "name": "Diamond Shoals",
    "wvht_ft": 2.3,
    "dpd_s": 9,
-   "mwd_deg": 121,
+   "mwd_deg": 349,
    "wspd_kt": 6,
    "wdir_deg": 60,
    "wtmp_f": 87,
-   "obs_time": "2026-08-22T03:50Z",
-   "model_wvht_ft": 2.7
+   "obs_time": "2026-08-22T04:10Z",
+   "model_wvht_ft": 2.6
   },
   "44100": {
    "name": "Duck (waverider)",
