@@ -1,21 +1,4 @@
 {
- "updated": "2026-08-28T18:35Z",
- "storms": [
-  {
-   "id": "al042026",
-   "name": "Dolly",
-   "class": "PTC",
-   "cat": null,
-   "intensity_kt": 35,
-   "pressure_mb": 1008,
-   "lat": 15,
-   "lon": -46.9,
-   "movement_dir": 280,
-   "movement_speed_kt": 25,
-   "advisory_num": "005",
-   "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT4.shtml",
-   "graphics_url": "https://www.nhc.noaa.gov/graphics_at4.shtml",
-   "last_update": "2026-08-28T15:00:00.000Z"
-  }
- ]
+ "updated": "2026-08-29T02:07Z",
+ "storms": []
 }
