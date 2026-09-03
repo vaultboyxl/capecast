@@ -1,21 +1,21 @@
 {
- "updated": "2026-09-03T05:43Z",
+ "updated": "2026-09-03T11:07Z",
  "storms": [
   {
    "id": "al052026",
    "name": "Edouard",
-   "class": "TD",
+   "class": "PTC",
    "cat": null,
    "intensity_kt": 20,
-   "pressure_mb": 1011,
-   "lat": 32.2,
-   "lon": -95.7,
-   "movement_dir": 320,
-   "movement_speed_kt": 6,
-   "advisory_num": "011",
+   "pressure_mb": 1012,
+   "lat": 32.5,
+   "lon": -96.5,
+   "movement_dir": 300,
+   "movement_speed_kt": 5,
+   "advisory_num": "012",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT5.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at5.shtml",
-   "last_update": "2026-09-03T03:00:00.000Z"
+   "last_update": "2026-09-03T09:00:00.000Z"
   }
  ]
 }
