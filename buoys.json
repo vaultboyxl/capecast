@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-10T08:19Z",
+ "updated": "2026-09-10T08:56Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -23,28 +23,28 @@
    "wdir_deg": 130,
    "wtmp_f": 84,
    "obs_time": "2026-09-10T07:50Z",
-   "model_wvht_ft": 4
+   "model_wvht_ft": 3.9
   },
   "41025": {
    "name": "Diamond Shoals",
    "wvht_ft": 2.6,
-   "dpd_s": 9,
-   "mwd_deg": 93,
+   "dpd_s": 7,
+   "mwd_deg": 106,
    "wspd_kt": 14,
-   "wdir_deg": 220,
+   "wdir_deg": 230,
    "wtmp_f": 84,
-   "obs_time": "2026-09-10T07:20Z",
+   "obs_time": "2026-09-10T07:50Z",
    "model_wvht_ft": 2.9
   },
   "44100": {
    "name": "Duck (waverider)",
    "wvht_ft": 3,
    "dpd_s": 4,
-   "mwd_deg": 156,
+   "mwd_deg": 149,
    "wspd_kt": null,
    "wdir_deg": null,
    "wtmp_f": 79,
-   "obs_time": "2026-09-10T07:30Z",
+   "obs_time": "2026-09-10T08:00Z",
    "model_wvht_ft": 2.3
   }
  }
