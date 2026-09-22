@@ -1,21 +1,21 @@
 {
- "updated": "2026-09-21T23:13Z",
+ "updated": "2026-09-22T04:45Z",
  "storms": [
   {
    "id": "al062026",
    "name": "Fay",
    "class": "TS",
    "cat": null,
-   "intensity_kt": 40,
-   "pressure_mb": 1004,
-   "lat": 33.1,
-   "lon": -32.2,
-   "movement_dir": 210,
-   "movement_speed_kt": 3,
-   "advisory_num": "010",
+   "intensity_kt": 35,
+   "pressure_mb": 1008,
+   "lat": 32.3,
+   "lon": -33.1,
+   "movement_dir": 215,
+   "movement_speed_kt": 8,
+   "advisory_num": "011",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT1.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at1.shtml",
-   "last_update": "2026-09-21T21:00:00.000Z"
+   "last_update": "2026-09-22T03:00:00.000Z"
   }
  ]
 }
