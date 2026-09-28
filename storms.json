@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-28T15:20Z",
+ "updated": "2026-09-28T21:53Z",
  "storms": [
   {
    "id": "al062026",
@@ -8,14 +8,14 @@
    "cat": null,
    "intensity_kt": 30,
    "pressure_mb": 1011,
-   "lat": 27.1,
-   "lon": -44.6,
-   "movement_dir": 210,
+   "lat": 26.6,
+   "lon": -45.3,
+   "movement_dir": 220,
    "movement_speed_kt": 9,
-   "advisory_num": "034",
+   "advisory_num": "035",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT1.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at1.shtml",
-   "last_update": "2026-09-28T15:00:00.000Z"
+   "last_update": "2026-09-28T21:00:00.000Z"
   },
   {
    "id": "al082026",
@@ -24,14 +24,14 @@
    "cat": null,
    "intensity_kt": 40,
    "pressure_mb": 1006,
-   "lat": 36.6,
-   "lon": -50.4,
-   "movement_dir": 100,
+   "lat": 36.5,
+   "lon": -48.7,
+   "movement_dir": 115,
    "movement_speed_kt": 17,
-   "advisory_num": "001",
+   "advisory_num": "002",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT3.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at3.shtml",
-   "last_update": "2026-09-28T15:00:00.000Z"
+   "last_update": "2026-09-28T21:00:00.000Z"
   }
  ]
 }
