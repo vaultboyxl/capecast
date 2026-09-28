@@ -1,21 +1,37 @@
 {
- "updated": "2026-09-28T06:44Z",
+ "updated": "2026-09-28T15:20Z",
  "storms": [
   {
    "id": "al062026",
    "name": "Fay",
    "class": "TD",
    "cat": null,
-   "intensity_kt": 25,
-   "pressure_mb": 1012,
-   "lat": 28.5,
-   "lon": -43.8,
-   "movement_dir": 190,
-   "movement_speed_kt": 6,
-   "advisory_num": "032",
+   "intensity_kt": 30,
+   "pressure_mb": 1011,
+   "lat": 27.1,
+   "lon": -44.6,
+   "movement_dir": 210,
+   "movement_speed_kt": 9,
+   "advisory_num": "034",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT1.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at1.shtml",
-   "last_update": "2026-09-28T03:00:00.000Z"
+   "last_update": "2026-09-28T15:00:00.000Z"
+  },
+  {
+   "id": "al082026",
+   "name": "Hanna",
+   "class": "TS",
+   "cat": null,
+   "intensity_kt": 40,
+   "pressure_mb": 1006,
+   "lat": 36.6,
+   "lon": -50.4,
+   "movement_dir": 100,
+   "movement_speed_kt": 17,
+   "advisory_num": "001",
+   "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT3.shtml",
+   "graphics_url": "https://www.nhc.noaa.gov/graphics_at3.shtml",
+   "last_update": "2026-09-28T15:00:00.000Z"
   }
  ]
 }
