@@ -1,21 +1,21 @@
 {
- "updated": "2026-09-30T13:36Z",
+ "updated": "2026-09-30T19:11Z",
  "storms": [
   {
    "id": "al082026",
    "name": "Hanna",
-   "class": "TS",
+   "class": "PTC",
    "cat": null,
-   "intensity_kt": 35,
-   "pressure_mb": 1006,
-   "lat": 33.5,
-   "lon": -43.9,
-   "movement_dir": 120,
+   "intensity_kt": 30,
+   "pressure_mb": 1008,
+   "lat": 33.4,
+   "lon": -43.6,
+   "movement_dir": 90,
    "movement_speed_kt": 5,
-   "advisory_num": "008",
+   "advisory_num": "009",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT3.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at3.shtml",
-   "last_update": "2026-09-30T09:00:00.000Z"
+   "last_update": "2026-09-30T15:00:00.000Z"
   }
  ]
 }
