@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-30T06:37Z",
+ "updated": "2026-09-30T13:36Z",
  "storms": [
   {
    "id": "al082026",
@@ -7,15 +7,15 @@
    "class": "TS",
    "cat": null,
    "intensity_kt": 35,
-   "pressure_mb": 1005,
-   "lat": 33.7,
-   "lon": -43.6,
-   "movement_dir": 130,
-   "movement_speed_kt": 12,
-   "advisory_num": "007",
+   "pressure_mb": 1006,
+   "lat": 33.5,
+   "lon": -43.9,
+   "movement_dir": 120,
+   "movement_speed_kt": 5,
+   "advisory_num": "008",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT3.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at3.shtml",
-   "last_update": "2026-09-30T03:00:00.000Z"
+   "last_update": "2026-09-30T09:00:00.000Z"
   }
  ]
 }
