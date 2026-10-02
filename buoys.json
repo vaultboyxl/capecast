@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-02T10:29Z",
+ "updated": "2026-10-02T10:39Z",
  "stations": {
   "41001": {
    "name": "E Hatteras",
@@ -20,7 +20,7 @@
    "dpd_s": 10,
    "mwd_deg": 63,
    "wspd_kt": 2,
-   "wdir_deg": 180,
+   "wdir_deg": 170,
    "wtmp_f": 83,
    "obs_time": "2026-10-02T09:50Z",
    "model_wvht_ft": 2.7
@@ -31,7 +31,7 @@
    "dpd_s": 12,
    "mwd_deg": 114,
    "wspd_kt": 8,
-   "wdir_deg": 260,
+   "wdir_deg": 250,
    "wtmp_f": 76,
    "obs_time": "2026-10-02T09:50Z",
    "model_wvht_ft": 2.6
@@ -45,7 +45,7 @@
    "wdir_deg": null,
    "wtmp_f": 73,
    "obs_time": "2026-10-02T10:00Z",
-   "model_wvht_ft": 1.8
+   "model_wvht_ft": 1.7
   }
  }
 }
