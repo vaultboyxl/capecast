@@ -1,21 +1,21 @@
 {
- "updated": "2026-10-07T10:09Z",
+ "updated": "2026-10-07T17:46Z",
  "storms": [
   {
    "id": "al092026",
    "name": "Isaias",
    "class": "TS",
    "cat": null,
-   "intensity_kt": 35,
-   "pressure_mb": 1004,
-   "lat": 22,
-   "lon": -94.1,
-   "movement_dir": 75,
+   "intensity_kt": 40,
+   "pressure_mb": 1000,
+   "lat": 22.4,
+   "lon": -93.6,
+   "movement_dir": 70,
    "movement_speed_kt": 8,
-   "advisory_num": "003",
+   "advisory_num": "004",
    "advisory_url": "https://www.nhc.noaa.gov/text/MIATCPAT4.shtml",
    "graphics_url": "https://www.nhc.noaa.gov/graphics_at4.shtml",
-   "last_update": "2026-10-07T09:00:00.000Z"
+   "last_update": "2026-10-07T15:00:00.000Z"
   }
  ]
 }
