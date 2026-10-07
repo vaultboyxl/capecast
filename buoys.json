@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-07T17:55Z",
+ "updated": "2026-10-07T22:45Z",
  "stations": {
   "41001": null,
   "41002": {
@@ -12,29 +12,29 @@
    "wdir_deg": null,
    "wtmp_f": null,
    "obs_time": null,
-   "model_wvht_ft": 7
+   "model_wvht_ft": 6
   },
   "41025": {
    "name": "Diamond Shoals",
-   "wvht_ft": 3.6,
-   "dpd_s": 7,
-   "mwd_deg": 65,
-   "wspd_kt": 14,
-   "wdir_deg": 20,
-   "wtmp_f": 79,
-   "obs_time": "2026-10-07T17:10Z",
-   "model_wvht_ft": 3.8
+   "wvht_ft": 3.3,
+   "dpd_s": 6,
+   "mwd_deg": 96,
+   "wspd_kt": 6,
+   "wdir_deg": 100,
+   "wtmp_f": 82,
+   "obs_time": "2026-10-07T22:20Z",
+   "model_wvht_ft": 3.3
   },
   "44100": {
    "name": "Duck (waverider)",
-   "wvht_ft": 2,
+   "wvht_ft": 1.6,
    "dpd_s": 8,
-   "mwd_deg": 77,
+   "mwd_deg": 86,
    "wspd_kt": null,
    "wdir_deg": null,
    "wtmp_f": 71,
-   "obs_time": "2026-10-07T17:00Z",
-   "model_wvht_ft": 1.8
+   "obs_time": "2026-10-07T22:00Z",
+   "model_wvht_ft": 1.6
   }
  }
 }
