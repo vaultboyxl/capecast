@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-16T08:24Z",
+ "updated": "2026-10-16T09:00Z",
  "stations": {
   "41001": null,
   "41002": {
@@ -34,7 +34,7 @@
    "wdir_deg": null,
    "wtmp_f": 71,
    "obs_time": "2026-10-16T07:30Z",
-   "model_wvht_ft": 2.9
+   "model_wvht_ft": 2.8
   }
  }
 }
