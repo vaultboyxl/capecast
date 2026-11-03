@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-03T11:38Z",
+ "updated": "2026-11-03T11:54Z",
  "stations": {
   "41001": null,
   "41002": {
@@ -12,17 +12,17 @@
    "wdir_deg": null,
    "wtmp_f": null,
    "obs_time": null,
-   "model_wvht_ft": 6.5
+   "model_wvht_ft": 6.4
   },
   "41025": {
    "name": "Diamond Shoals",
    "wvht_ft": 3.6,
    "dpd_s": 8,
-   "mwd_deg": 133,
+   "mwd_deg": 143,
    "wspd_kt": 14,
    "wdir_deg": 10,
    "wtmp_f": 74,
-   "obs_time": "2026-11-03T10:50Z",
+   "obs_time": "2026-11-03T11:10Z",
    "model_wvht_ft": 3.5
   },
   "44100": {
